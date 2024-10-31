@@ -2,6 +2,11 @@
 
 SET client_encoding = 'UTF8';
 
+CREATE DATABASE IF NOT EXISTS intercambio_discos
+    WITH OWNER = postgres
+    ENCODING = 'UTF8'
+    CONNECTION LIMIT = -1; -- -1 significa ilimitado
+
 /*
  * Buscar en la documentación oficial de PostgreSQL:
  * REGEXP_MATCHES_TO_TABLE
@@ -91,12 +96,66 @@ CREATE TABLE IF NOT EXISTS Desea(
 
 \echo 'creando un esquema temporal'
 
+CREATE TABLE IF NOT EXISTS Canciones_temp(
+    Id_disco TEXT,
+    Titulo TEXT,
+    Duracion TEXT
+);
+
+CREATE TABLE IF NOT EXISTS Discos_temp(
+    Id_disco TEXT,
+    Nombre TEXT,
+    Fecha_lanz TEXT,
+    Id_grupo TEXT,
+    Nombre_grupo TEXT,
+    Url_grupo TEXT,
+    Generos TEXT,
+    Url_portada TEXT
+);
+
+CREATE TABLE IF NOT EXISTS Ediciones_temp(
+    Id_disco TEXT,
+    Ano_edicion TEXT,
+    Pais TEXT,
+    Formato TEXT
+);
+
+CREATE TABLE IF NOT EXISTS Usuario_desea_disco_temp(
+    Nombre_user TEXT,
+    Titulo_disco TEXT,
+    Ano_lanz TEXT
+);
+
+CREATE TABLE IF NOT EXISTS Usuario_tiene_edicion_temp(
+    Nombre_user TEXT,
+    Titulo_disco TEXT,
+    Ano_lanz TEXT,
+    Ano_edicion TEXT,
+    Pais TEXT,
+    Formato TEXT,
+    Estado TEXT
+);
+
+CREATE TABLE IF NOT EXISTS Usuarios_temp(
+    Nombre_completo TEXT,
+    Nombre_user TEXT,
+    Email TEXT,
+    Contrasena TEXT
+);
+
 -- NOMBRE TABLE, TEMPORAL.GRUPO, ETC
 
-SET search_path='nombre del esquema o esquemas utilizados';
+SET search_path='';
 
 \echo 'Cargando datos'
+-- COPY NOMBRE ARCHIVO FROM 'RUTA' DELIMITER 'DELIMITADOR' NULL 'NULL' CSV ENCODING 'UTF8';
 
+COPY canciones FROM 'Datos/canciones.csv' DELIMITER ';' NULL '' CSV ENCODING 'UTF8';
+COPY discos FROM 'Datos/discos.csv' DELIMITER ';' NULL '' CSV ENCODING 'UTF8';
+COPY ediciones FROM 'Datos/ediciones.csv' DELIMITER ';' NULL '' CSV ENCODING 'UTF8';
+COPY usuario_desea_disco FROM 'Datos/usuario_desea_disco.csv' DELIMITER ';' NULL '' CSV ENCODING 'UTF8';
+COPY usuario_tiene_edicion FROM 'Datos/usuario_tiene_edicion.csv' DELIMITER ';' NULL '' CSV ENCODING 'UTF8';
+COPY usuarios FROM 'Datos/usuarios.csv' DELIMITER ';' NULL '' CSV ENCODING 'UTF8';
 
 \echo 'insertando datos en el esquema final'
 
