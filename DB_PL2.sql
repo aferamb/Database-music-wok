@@ -38,9 +38,7 @@ CREATE TABLE IF NOT EXISTS Generos(
     Titulo_disco TEXT,
     Ano_publicacion INT,
     Genero TEXT,
-    CONSTRAINT pk_genero PRIMARY KEY (Titulo_disco, Ano_publicacion, Genero) --revisar
-    --CONSTRAINT fk_genero_disco FOREIGN KEY (Titulo_disco, Ano_publicacion) REFERENCES Disco(Titulo, Ano_publicacion) --revisar
-    --ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT pk_genero PRIMARY KEY (Titulo_disco, Ano_publicacion, Genero) 
 );
 
 CREATE TABLE IF NOT EXISTS Canciones(
