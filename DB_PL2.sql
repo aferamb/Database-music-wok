@@ -162,8 +162,12 @@ CREATE TABLE IF NOT EXISTS Usuarios_temp(
 
 SELECT * FROM public.Canciones_temp WHERE Id_disco = '528851';
 INSERT INTO Grupo(Nombre, Url_grupo) SELECT DISTINCT Nombre_grupo, Url_grupo FROM Discos_temp;
-INSERT INTO Disco(Titulo, Ano_publicacion, Url_portada, Nombre_grupo) SELECT Nombre, Fecha_lanz, Url_portada, Nombre_grupo FROM Discos_temp;
+INSERT INTO Disco(Titulo, Ano_publicacion, Url_portada, Nombre_grupo) SELECT DISTINCT Nombre, Fecha_lanz, Url_portada, Nombre_grupo FROM Discos_temp;
 
+
+
+-- 'folk, rock & country' -> 'folk', 'rock', 'country'     separar por comas y eliminar espacios y caracteres especiales
+-- combertir tiempo a time (timestamp?)
 \echo 'Consulta 1: texto de la consulta'
 
 \echo 'Consulta n':
