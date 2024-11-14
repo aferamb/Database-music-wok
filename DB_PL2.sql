@@ -9,7 +9,7 @@ SET client_encoding = 'UTF8';
  * REGEXP_REPLACE
  * MAKE_INTERVAL
  * 
- * COPY NOMBRE ARCHIVO FROM 'RUTA' DELIMITER 'DELIMITADOR' NULL 'NULL' CSV ENCODING 'UTF8';
+ * \COPY NOMBRE ARCHIVO FROM 'RUTA' DELIMITER 'DELIMITADOR' NULL 'NULL' CSV ENCODING 'UTF8';
  * 
  * Igual sobran NOT NULL 
  */
@@ -146,12 +146,10 @@ CREATE TABLE IF NOT EXISTS Usuarios_temp(
 );
 
 
---SET search_path TO public;  -- este comando estaba como SET search_path =''; en el script original y 
--- era el que estaba dando problemas con las tablas 
+--SET search_path TO public;  -- este comando estaba como SET search_path =''; en el script original y era el que estaba dando problemas con las tablas 
 
 \echo 'Cargando datos'
--- COPY NOMBRE ARCHIVO FROM 'RUTA' DELIMITER 'DELIMITADOR' NULL 'NULL' CSV ENCODING 'UTF8';
---\COPY public.Canciones_temp FROM 'Datos/canciones.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8';
+-- \COPY NOMBRE ARCHIVO FROM 'RUTA' DELIMITER 'DELIMITADOR' NULL 'NULL' CSV ENCODING 'UTF8';
 
 \COPY Canciones_temp FROM 'Datos/canciones.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8';
 \COPY Discos_temp FROM 'Datos/discos.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8';
@@ -160,9 +158,9 @@ CREATE TABLE IF NOT EXISTS Usuarios_temp(
 \COPY Usuario_tiene_edicion_temp FROM 'Datos/usuario_tiene_edicion.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8';
 \COPY Usuarios_temp FROM 'Datos/usuarios.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8';
 
-SELECT * FROM public.Canciones_temp WHERE Id_disco = '528851';
-
 \echo 'insertando datos en el esquema final'
+
+SELECT * FROM public.Canciones_temp WHERE Id_disco = '528851';
 
 \echo 'Consulta 1: texto de la consulta'
 
