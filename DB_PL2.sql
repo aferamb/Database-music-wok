@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS Ediciones(
     Ano_edicion INT NOT NULL, --FORMAT('YYYY')
     Pais TEXT NOT NULL,
     CONSTRAINT pk_edicion PRIMARY KEY (Titulo_disco, Ano_publicacion, Formato, Ano_edicion, Pais)
+    CONSTRAINT fk_cancion_disco FOREIGN KEY (Titulo_disco, Ano_publicacion) REFERENCES Disco(Titulo, Ano_publicacion)
 );
 
 CREATE TABLE IF NOT EXISTS Usuario(
