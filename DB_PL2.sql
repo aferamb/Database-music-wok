@@ -8,14 +8,18 @@ SET client_encoding = 'UTF8';
  * RPLACE
  * REGEXP_REPLACE
  * MAKE_INTERVAL
+ * TO_CHAR
  * 
- * \COPY NOMBRE ARCHIVO FROM 'RUTA' DELIMITER 'DELIMITADOR' NULL 'NULL' CSV ENCODING 'UTF8';
+ * \COPY NOMBRE ARCHIVO FROM 'RUTA' DELIMITER 'DELIMITADOR' NULL 'NULL' CSV ENCODING 'UTF8' HEADER;
  * 
- * Igual sobran NOT NULL 
- */
+ * comprueva que no haya valores no numericos en Fecha_lanz
+    SELECT *
+    FROM Discos_temp
+    WHERE Fecha_lanz !~ '^[0-9]+$';
+*/
 
 BEGIN;
-\echo 'creando el esquema para la BBDD de intercambio de discos'
+\echo '         Creando el esquema para la BBDD de intercambio de discos'
 
 CREATE TABLE IF NOT EXISTS Grupo(
     Nombre TEXT NOT NULL,
@@ -45,7 +49,7 @@ CREATE TABLE IF NOT EXISTS Canciones(
     Titulo_cancion TEXT NOT NULL,
     Titulo_disco TEXT NOT NULL,
     Ano_publicacion INT NOT NULL,
-    Duracion INT,
+    Duracion INTERVAL NOT NULL,
     CONSTRAINT pk_cancion PRIMARY KEY (Titulo_cancion, Titulo_disco, Ano_publicacion),
     CONSTRAINT fk_cancion_disco FOREIGN KEY (Titulo_disco, Ano_publicacion) REFERENCES Disco(Titulo, Ano_publicacion)
     ON DELETE RESTRICT ON UPDATE CASCADE
@@ -57,7 +61,7 @@ CREATE TABLE IF NOT EXISTS Ediciones(
     Formato TEXT NOT NULL,
     Ano_edicion INT NOT NULL, --FORMAT('YYYY')
     Pais TEXT NOT NULL,
-    CONSTRAINT pk_edicion PRIMARY KEY (Titulo_disco, Ano_publicacion, Formato, Ano_edicion, Pais)
+    CONSTRAINT pk_edicion PRIMARY KEY (Titulo_disco, Ano_publicacion, Formato, Ano_edicion, Pais),
     CONSTRAINT fk_cancion_disco FOREIGN KEY (Titulo_disco, Ano_publicacion) REFERENCES Disco(Titulo, Ano_publicacion)
 );
 
@@ -95,7 +99,7 @@ CREATE TABLE IF NOT EXISTS Desea(
     ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
-\echo 'creando un esquema temporal'
+\echo '         Creando un esquema temporal'
 
 CREATE TABLE IF NOT EXISTS Canciones_temp(
     Id_disco TEXT,
@@ -105,8 +109,8 @@ CREATE TABLE IF NOT EXISTS Canciones_temp(
 
 CREATE TABLE IF NOT EXISTS Discos_temp(
     Id_disco TEXT,
-    Nombre TEXT,
-    Fecha_lanz TEXT,
+    Nombre_disco TEXT,
+    Fecha_lanz TEXT, -------------------> INT
     Id_grupo TEXT,
     Nombre_grupo TEXT,
     Url_grupo TEXT,
@@ -147,26 +151,87 @@ CREATE TABLE IF NOT EXISTS Usuarios_temp(
 
 --SET search_path TO public;  -- este comando estaba como SET search_path =''; en el script original y era el que estaba dando problemas con las tablas 
 
-\echo 'Cargando datos'
--- \COPY NOMBRE ARCHIVO FROM 'RUTA' DELIMITER 'DELIMITADOR' NULL 'NULL' CSV ENCODING 'UTF8';
+\echo '         Cargando datos'
 
-\COPY Canciones_temp FROM 'Datos/canciones.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8';
-\COPY Discos_temp FROM 'Datos/discos.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8';
-\COPY Ediciones_temp FROM 'Datos/ediciones.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8';
-\COPY Usuario_desea_disco_temp FROM 'Datos/usuario_desea_disco.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8';
-\COPY Usuario_tiene_edicion_temp FROM 'Datos/usuario_tiene_edicion.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8';
-\COPY Usuarios_temp FROM 'Datos/usuarios.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8';
+\COPY Canciones_temp FROM 'Datos/canciones.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8' HEADER;
+\COPY Discos_temp FROM 'Datos/discos.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8' HEADER;
+\COPY Ediciones_temp FROM 'Datos/ediciones.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8' HEADER;
+\COPY Usuario_desea_disco_temp FROM 'Datos/usuario_desea_disco.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8' HEADER;
+\COPY Usuario_tiene_edicion_temp FROM 'Datos/usuario_tiene_edicion.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8' HEADER;
+\COPY Usuarios_temp FROM 'Datos/usuarios.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8' HEADER;
 
-\echo 'insertando datos en el esquema final'
+\echo '         Insertando datos en el esquema final'
 
-SELECT * FROM public.Canciones_temp WHERE Id_disco = '528851';
-INSERT INTO Grupo(Nombre, Url_grupo) SELECT DISTINCT Nombre_grupo, Url_grupo FROM Discos_temp;
-INSERT INTO Disco(Titulo, Ano_publicacion, Url_portada, Nombre_grupo) SELECT DISTINCT Nombre, Fecha_lanz, Url_portada, Nombre_grupo FROM Discos_temp;
+INSERT INTO Grupo(Nombre, Url_grupo) 
+SELECT DISTINCT 
+    Nombre_grupo, 
+    Url_grupo 
+FROM Discos_temp;
+
+-- count (*) select on n_discos
+INSERT INTO Disco(Titulo, Ano_publicacion, Url_portada, Nombre_grupo) 
+SELECT distinct on (Nombre_disco, Fecha_lanz) 
+    Nombre_disco, 
+    Fecha_lanz::INT, 
+    Url_portada, 
+    Nombre_grupo 
+FROM Discos_temp;
+
+INSERT INTO Generos (Titulo_disco, Ano_publicacion, Genero)
+SELECT DISTINCT
+    Nombre_disco, 
+    Fecha_lanz::INT, 
+    regexp_split_to_table(regexp_replace(Generos, '\[|\]|&|/|''', '', 'g'), E',')
+FROM Discos_temp;
+
+
+/*
+INSERT INTO Canciones(Titulo_cancion, Titulo_disco, Ano_publicacion, Duracion)
+SELECT 
+    Titulo, -- Titulo de la canción
+    Nombre_disco, -- Nombre del disco
+    Fecha_lanz::INT, 
+    -- Verificar si Duracion es NULL, y si no lo es, convertirla a INTERVAL
+    CASE 
+        WHEN Duracion IS NOT NULL THEN
+            -- Convertir Duracion (mm:ss) a INTERVAL
+            make_interval(
+                mins => split_part(Duracion, ':', 1)::INT, 
+                secs => split_part(Duracion, ':', 2)::INT
+            )
+        ELSE 
+            NULL -- Mantener NULL si la Duracion es NULL
+    END AS Duracion
+FROM Canciones_temp c
+JOIN Discos_temp d ON c.Id_disco = d.Id_disco
+WHERE c.Titulo != '';
+*/
+INSERT INTO Canciones(Titulo_cancion, Titulo_disco, Ano_publicacion, Duracion)
+SELECT DISTINCT ON (Titulo, Nombre_disco, Fecha_lanz)
+    Titulo, -- Titulo de la canción
+    Nombre_disco, -- Nombre del disco
+    Fecha_lanz::INT, 
+    -- Convertir Duracion (mm:ss) a INTERVAL usando make_interval, 
+    --si no hubiese canciones de mas de una hora expresadas en minutos se usaria  ('00:' || Duracion) ::INTERVAL
+    make_interval(
+        mins => split_part(Duracion, ':', 1)::INT, 
+        secs => split_part(Duracion, ':', 2)::INT
+    )
+FROM Canciones_temp c JOIN Discos_temp d ON c.Id_disco = d.Id_disco
+WHERE c.Titulo != '' AND Duracion IS NOT NULL;
+
+INSERT INTO Ediciones(Titulo_disco, Ano_publicacion, Formato, Ano_edicion, Pais)
+SELECT DISTINCT -- en todo porque todo es PK
+    Nombre_disco, 
+    Fecha_lanz::INT, 
+    Formato, 
+    Ano_edicion::INT, 
+    Pais
+FROM Ediciones_temp e JOIN Discos_temp d ON e.Id_disco = d.Id_disco;
 
 
 
--- 'folk, rock & country' -> 'folk', 'rock', 'country'     separar por comas y eliminar espacios y caracteres especiales
--- combertir tiempo a time (timestamp?)
+-- combertir tiempo a time (interval?)
 \echo 'Consulta 1: texto de la consulta'
 
 \echo 'Consulta n':
