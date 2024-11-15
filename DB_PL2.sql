@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS Usuarios_temp(
 );
 
 
---SET search_path TO public;  -- este comando estaba como SET search_path =''; en el script original y era el que estaba dando problemas con las tablas 
+SET search_path TO public;  -- este comando estaba como SET search_path =''; en el script original y era el que estaba dando problemas con las tablas 
 
 \echo '         Cargando datos'
 
@@ -161,22 +161,25 @@ CREATE TABLE IF NOT EXISTS Usuarios_temp(
 \COPY Usuarios_temp FROM 'Datos/usuarios.csv' DELIMITER ';' NULL 'NULL' CSV ENCODING 'UTF8' HEADER;
 
 \echo '         Insertando datos en el esquema final'
-
+\echo ''
+\echo 'Insercion de datos tabla Grupo'
 INSERT INTO Grupo(Nombre, Url_grupo) 
-SELECT DISTINCT 
+SELECT DISTINCT ON (Nombre_grupo)
     Nombre_grupo, 
     Url_grupo 
 FROM Discos_temp;
 
+\echo 'Insercion de datos tabla Disco'
 -- count (*) select on n_discos
 INSERT INTO Disco(Titulo, Ano_publicacion, Url_portada, Nombre_grupo) 
-SELECT distinct on (Nombre_disco, Fecha_lanz) 
+SELECT DISTINCT ON (Nombre_disco, Fecha_lanz) 
     Nombre_disco, 
     Fecha_lanz::INT, 
     Url_portada, 
     Nombre_grupo 
 FROM Discos_temp;
 
+\echo 'Insercion de datos tabla Generos'
 INSERT INTO Generos (Titulo_disco, Ano_publicacion, Genero)
 SELECT DISTINCT
     Nombre_disco, 
@@ -206,6 +209,7 @@ FROM Canciones_temp c
 JOIN Discos_temp d ON c.Id_disco = d.Id_disco
 WHERE c.Titulo != '';
 */
+\echo 'Insercion de datos tabla Canciones'
 INSERT INTO Canciones(Titulo_cancion, Titulo_disco, Ano_publicacion, Duracion)
 SELECT DISTINCT ON (Titulo, Nombre_disco, Fecha_lanz)
     Titulo, -- Titulo de la canción
@@ -220,6 +224,7 @@ SELECT DISTINCT ON (Titulo, Nombre_disco, Fecha_lanz)
 FROM Canciones_temp c JOIN Discos_temp d ON c.Id_disco = d.Id_disco
 WHERE c.Titulo != '' AND Duracion IS NOT NULL;
 
+\echo 'Insercion de datos tabla Ediciones'
 INSERT INTO Ediciones(Titulo_disco, Ano_publicacion, Formato, Ano_edicion, Pais)
 SELECT DISTINCT -- en todo porque todo es PK
     Nombre_disco, 
@@ -229,9 +234,41 @@ SELECT DISTINCT -- en todo porque todo es PK
     Pais
 FROM Ediciones_temp e JOIN Discos_temp d ON e.Id_disco = d.Id_disco;
 
+\echo 'Insercion de datos tabla Usuario'
+INSERT INTO Usuario(Nombre_user, Nombre, Email, Contrasena)
+SELECT DISTINCT ON (Nombre_user)
+    Nombre_user, 
+    Nombre_completo, 
+    Email, 
+    Contrasena
+FROM Usuarios_temp;
 
+\echo 'Insercion de datos tabla Tiene'
+-- No se incluyen los usuarios que no existen en la tabla de usuarios
+INSERT INTO Tiene(Nombre_user, Titulo_disco, Ano_publicacion, Formato, Ano_edicion, Pais, Estado)
+SELECT DISTINCT ON (ute.Nombre_user, ute.Titulo_disco, ute.Ano_lanz, ute.Formato, ute.Ano_edicion, ute.Pais)
+    ute.Nombre_user, 
+    Titulo_disco, 
+    Ano_lanz::INT, 
+    Formato, 
+    Ano_edicion::INT, 
+    Pais, 
+    Estado
+FROM Usuario_tiene_edicion_temp ute JOIN Usuarios_temp u ON ute.Nombre_user = u.Nombre_user;
 
--- combertir tiempo a time (interval?)
+\echo 'Insercion de datos tabla Desea'
+-- No se incluyen los usuarios que no existen en la tabla de usuarios
+INSERT INTO Desea(Titulo_disco, Ano_publicacion, Nombre_user)
+SELECT DISTINCT
+    Titulo_disco, 
+    Ano_lanz::INT, 
+    udd.Nombre_user
+FROM Usuario_desea_disco_temp udd JOIN Usuarios_temp u ON udd.Nombre_user = u.Nombre_user; 
+
+\echo ''
+\echo '         Datos insertados correctamente'
+\echo ''
+
 \echo 'Consulta 1: texto de la consulta'
 
 \echo 'Consulta n':
