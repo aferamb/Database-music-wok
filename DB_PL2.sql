@@ -269,9 +269,29 @@ FROM Usuario_desea_disco_temp udd JOIN Usuarios_temp u ON udd.Nombre_user = u.No
 \echo '         Datos insertados correctamente'
 \echo ''
 
-\echo 'Consulta 1: texto de la consulta'
+\echo 'Consulta 1: Mostrar los discos que tengan más de 5 canciones. Construir la expresión equivalente en álgebra relacional.'
 
-\echo 'Consulta n':
+\echo 'Consulta 2: Mostrar los vinilos que tiene el usuario Juan García Gómez junto con el título del disco, y el país y año de edición del mismo'
+
+\echo 'Consulta 3: Disco con mayor duración de la colección. Construir la expresión equivalente en álgebra relacional.'
+
+\echo 'Consulta 4: De los discos que tiene en su lista de deseos el usuario Juan García Gómez, indicar el nombre de los grupos musicales que los interpretan.'
+
+\echo 'Consulta 5: Mostrar los discos publicados entre 1970 y 1972 junto con sus ediciones ordenados por el año de publicación.'
+
+\echo 'Consulta 6: Listar el nombre de todos los grupos que han publicado discos del género ‘Electronic’. Construir la expresión equivalente en álgebra relacional.'
+
+\echo 'Consulta 7: Lista de discos con la duración total del mismo, editados antes del año 2000.'
+
+\echo 'Consulta 8: Lista de ediciones de discos deseados por el usuario Lorena Sáez Pérez que tiene el usuario Juan García Gómez'
+
+\echo 'Consulta 9: Lista todas las ediciones de los discos que tiene el usuario Gómez García en un estado NM o M. Construir la expresión equivalente en álgebra relacional.'
+
+\echo 'Consulta 10: Listar todos los usuarios junto al número de ediciones que tiene de todos los discos junto al año de lanzamiento de su disco más antiguo, el año de lanzamiento de su disco más nuevo, y el año medio de todos sus discos de su colección'
+
+\echo 'Consulta 11: Listar el nombre de los grupos que tienen más de 5 ediciones de sus discos en la base de datos'
+
+\echo 'Consulta 12: Lista el usuario que más discos, contando todas sus ediciones tiene en la base de datos'
 
 
 ROLLBACK;                       -- importante! permite correr el script multiples veces...p
