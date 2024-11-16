@@ -170,14 +170,13 @@ SELECT DISTINCT ON (Nombre_grupo)
 FROM Discos_temp;
 
 \echo 'Insercion de datos tabla Disco'
--- count (*) select on n_discos
 INSERT INTO Disco(Titulo, Ano_publicacion, Url_portada, Nombre_grupo) 
 SELECT DISTINCT ON (Nombre_disco, Fecha_lanz) 
     Nombre_disco, 
     Fecha_lanz::INT, 
     Url_portada, 
     Nombre_grupo 
-FROM Discos_temp;
+FROM Discos_temp; -- count (*) select on n_discos
 
 \echo 'Insercion de datos tabla Generos'
 INSERT INTO Generos (Titulo_disco, Ano_publicacion, Genero)
@@ -215,13 +214,12 @@ SELECT DISTINCT ON (Titulo, Nombre_disco, Fecha_lanz)
     Titulo, -- Titulo de la canción
     Nombre_disco, -- Nombre del disco
     Fecha_lanz::INT, 
-    -- Convertir Duracion (mm:ss) a INTERVAL usando make_interval, 
-    --si no hubiese canciones de mas de una hora expresadas en minutos se usaria  ('00:' || Duracion) ::INTERVAL
-    make_interval(
+    make_interval( -- Convertir Duracion (mm:ss) a INTERVAL usando make_interval
         mins => split_part(Duracion, ':', 1)::INT, 
         secs => split_part(Duracion, ':', 2)::INT
-    )
-FROM Canciones_temp c JOIN Discos_temp d ON c.Id_disco = d.Id_disco
+    ) --si no hubiese canciones de mas 60 min  ('00:' || Duracion) ::INTERVAL
+FROM Canciones_temp c 
+JOIN Discos_temp d ON c.Id_disco = d.Id_disco
 WHERE c.Titulo != '' AND Duracion IS NOT NULL;
 
 \echo 'Insercion de datos tabla Ediciones'
@@ -270,28 +268,133 @@ FROM Usuario_desea_disco_temp udd JOIN Usuarios_temp u ON udd.Nombre_user = u.No
 \echo ''
 
 \echo 'Consulta 1: Mostrar los discos que tengan más de 5 canciones. Construir la expresión equivalente en álgebra relacional.'
+-- WTF no sabia que el copilot podia hacer algebra relacional, aunque no es tan dificil de hacer, y no se si lo hace bien xd
+-- 'Álgebra relacional: π_Titulo, Ano_publicacion, Num_canciones(σ_COUNT(Titulo_cancion) > 5(Disco ⨝ Canciones))'
+\echo ''
+SELECT DISTINCT 
+    d.Titulo, 
+    d.Ano_publicacion, 
+    COUNT(c.Titulo_cancion) AS Num_canciones
+FROM Disco d
+JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
+GROUP BY d.Titulo, d.Ano_publicacion
+-- No se puede usar WHERE porque estamos filtrando por una función de agregación, y WHERE se usa para filtrar antes de la agregación
+-- Solo se puede evaluar COUNT(c.Titulo_cancion) después de haber agrupado con GROUP BY
+HAVING COUNT(c.Titulo_cancion) > 5 -- HAVING se usa para filtrar resultados de una consulta agrupada.
+ORDER BY Num_canciones DESC;
 
+\echo ''
 \echo 'Consulta 2: Mostrar los vinilos que tiene el usuario Juan García Gómez junto con el título del disco, y el país y año de edición del mismo'
+\echo ''
 
+\echo ''
 \echo 'Consulta 3: Disco con mayor duración de la colección. Construir la expresión equivalente en álgebra relacional.'
+\echo ''
+SELECT --este disco tiene la mayor duracion de todods los discos, pero no lo tiene nadie
+    d.Titulo, 
+    d.Ano_publicacion, 
+    SUM(c.Duracion) AS Duracion_total
+FROM Disco d
+JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
+GROUP BY d.Titulo, d.Ano_publicacion
+ORDER BY Duracion_total DESC
+LIMIT 1;
 
+-- Consulta: Mostrar el disco cuya suma de la duración de las canciones sea la mayor de entre todos los discos de la colección de un usuario, para todos los usuarios'
+/*
+The query joins several tables to gather the necessary data:
+
+Usuario (u) is joined with Tiene (t) on the user's name.
+Tiene is joined with Canciones (c) on the album title and publication year.
+Canciones is joined with Disco (d) on the album title and publication year.
+
+The results are grouped by the user's name, album title, and publication year. 
+This grouping allows the query to calculate the total duration of songs for each album per user.
+
+The HAVING clause filters the results to include only those albums where the total duration of songs matches
+the maximum total duration for that user. This is achieved through a subquery that calculates 
+the maximum total duration of songs for each user. 
+The subquery groups the data by user, album title, and publication year, and then calculates the total duration
+ of songs for each group. The outer query compares the total duration of each album to this maximum value.
+
+Finally, the results are ordered by the user's name and the total duration of songs in descending order 
+(ORDER BY u.Nombre_user, Duracion_total DESC). 
+This ensures that the albums with the longest total duration appear first for each user.
+*/
+
+-- Que me fumado (y el copilot) , no se puede hacer algebra relacional de esto, es una consulta muy compleja
+SELECT 
+    u.Nombre_user, 
+    d.Titulo, 
+    d.Ano_publicacion, 
+    SUM(c.Duracion) AS Duracion_total
+FROM Usuario u
+JOIN Tiene t ON u.Nombre_user = t.Nombre_user
+JOIN Canciones c ON t.Titulo_disco = c.Titulo_disco AND t.Ano_publicacion = c.Ano_publicacion
+JOIN Disco d ON c.Titulo_disco = d.Titulo AND c.Ano_publicacion = d.Ano_publicacion
+GROUP BY u.Nombre_user, d.Titulo, d.Ano_publicacion
+HAVING SUM(c.Duracion) = (
+    SELECT MAX(Duracion_total)
+    FROM (
+        SELECT 
+            u2.Nombre_user, 
+            SUM(c2.Duracion) AS Duracion_total
+        FROM Usuario u2
+        JOIN Tiene t2 ON u2.Nombre_user = t2.Nombre_user
+        JOIN Canciones c2 ON t2.Titulo_disco = c2.Titulo_disco AND t2.Ano_publicacion = c2.Ano_publicacion
+        GROUP BY u2.Nombre_user, c2.Titulo_disco, c2.Ano_publicacion
+    ) AS subquery
+    WHERE subquery.Nombre_user = u.Nombre_user
+)
+ORDER BY u.Nombre_user, Duracion_total DESC;
+
+
+\echo ''
 \echo 'Consulta 4: De los discos que tiene en su lista de deseos el usuario Juan García Gómez, indicar el nombre de los grupos musicales que los interpretan.'
+\echo ''
 
+\echo ''
 \echo 'Consulta 5: Mostrar los discos publicados entre 1970 y 1972 junto con sus ediciones ordenados por el año de publicación.'
+\echo '' -- para que se vea mejor, incluir algebra relacional
+SELECT 
+    d.Titulo, 
+    d.Ano_publicacion, 
+    d.Nombre_grupo,
+    e.Formato, 
+    e.Ano_edicion, 
+    e.Pais
+FROM Disco d JOIN Ediciones e ON d.Titulo = e.Titulo_disco --AND d.Ano_publicacion = e.Ano_publicacion
+WHERE d.Ano_publicacion BETWEEN 1970 AND 1972
+-- Coment par doc d.Titulo ASC espara poner las ediciones juntitas por el nombre del disco
+ORDER BY d.Ano_publicacion ASC, d.Titulo ASC; -- ASC es el orden por defecto, se puede omitir
 
+\echo ''
 \echo 'Consulta 6: Listar el nombre de todos los grupos que han publicado discos del género ‘Electronic’. Construir la expresión equivalente en álgebra relacional.'
+\echo ''
 
+\echo ''
 \echo 'Consulta 7: Lista de discos con la duración total del mismo, editados antes del año 2000.'
+\echo ''
 
+\echo ''
 \echo 'Consulta 8: Lista de ediciones de discos deseados por el usuario Lorena Sáez Pérez que tiene el usuario Juan García Gómez'
+\echo ''
 
+\echo ''
 \echo 'Consulta 9: Lista todas las ediciones de los discos que tiene el usuario Gómez García en un estado NM o M. Construir la expresión equivalente en álgebra relacional.'
+\echo ''
 
+\echo ''
 \echo 'Consulta 10: Listar todos los usuarios junto al número de ediciones que tiene de todos los discos junto al año de lanzamiento de su disco más antiguo, el año de lanzamiento de su disco más nuevo, y el año medio de todos sus discos de su colección'
+\echo ''
 
+\echo ''
 \echo 'Consulta 11: Listar el nombre de los grupos que tienen más de 5 ediciones de sus discos en la base de datos'
+\echo ''
 
+\echo ''
 \echo 'Consulta 12: Lista el usuario que más discos, contando todas sus ediciones tiene en la base de datos'
+\echo ''
 
 
-ROLLBACK;                       -- importante! permite correr el script multiples veces...p
+ROLLBACK;     -- importante! permite correr el script multiples veces...p
