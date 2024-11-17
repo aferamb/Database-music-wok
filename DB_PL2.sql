@@ -12,6 +12,11 @@ SET client_encoding = 'UTF8';
  * 
  * \COPY NOMBRE ARCHIVO FROM 'RUTA' DELIMITER 'DELIMITADOR' NULL 'NULL' CSV ENCODING 'UTF8' HEADER;
  * 
+
+Igual en alguna consulta se muestran datos extra que no se necesitan o se pueden omitir,
+ pero es para que se vea mejor
+
+
  * comprueva que no haya valores no numericos en Fecha_lanz
     SELECT *
     FROM Discos_temp
@@ -177,6 +182,7 @@ SELECT DISTINCT ON (Nombre_disco, Fecha_lanz)
     Url_portada, 
     Nombre_grupo 
 FROM Discos_temp; -- count (*) select on n_discos
+--discos del año 0 se consideran que no se sabe el año de publicacion
 
 \echo 'Insercion de datos tabla Generos'
 INSERT INTO Generos (Titulo_disco, Ano_publicacion, Genero)
@@ -392,6 +398,18 @@ ORDER BY d.Ano_publicacion, d.Titulo;
 \echo ''
 \echo 'Consulta 9: Lista todas las ediciones de los discos que tiene el usuario Gómez García en un estado NM o M. Construir la expresión equivalente en álgebra relacional.'
 \echo ''
+-- 'Álgebra relacional: π_Nombre_user, Titulo_disco, Ano_publicacion, Formato, Ano_edicion, Pais, Estado(σ_Nombre = 'Gómez García' AND Estado IN ('NM', 'M')(Tiene ⨝ Usuario))'
+
+SELECT
+    u.Nombre, 
+    t.Titulo_disco, 
+    t.Ano_publicacion, 
+    t.Formato, 
+    t.Ano_edicion, 
+    t.Pais, 
+    t.Estado
+FROM Tiene t JOIN Usuario u ON t.Nombre_user = u.Nombre_user
+WHERE u.Nombre LIKE '%G_mez Garc_a%' AND Estado IN ('NM', 'M');
 
 \echo ''
 \echo 'Consulta 10: Listar todos los usuarios junto al número de ediciones que tiene de todos los discos junto al año de lanzamiento de su disco más antiguo, el año de lanzamiento de su disco más nuevo, y el año medio de todos sus discos de su colección'
@@ -400,6 +418,15 @@ ORDER BY d.Ano_publicacion, d.Titulo;
 \echo ''
 \echo 'Consulta 11: Listar el nombre de los grupos que tienen más de 5 ediciones de sus discos en la base de datos'
 \echo ''
+
+SELECT 
+    g.Nombre, 
+    COUNT(e.Titulo_disco) AS Num_ediciones
+FROM Grupo g
+JOIN Disco d ON g.Nombre = d.Nombre_grupo
+JOIN Ediciones e ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publicacion
+GROUP BY g.Nombre
+HAVING COUNT(e.Titulo_disco) > 5;
 
 \echo ''
 \echo 'Consulta 12: Lista el usuario que más discos, contando todas sus ediciones tiene en la base de datos'
