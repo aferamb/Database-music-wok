@@ -363,10 +363,9 @@ SELECT
     e.Formato, 
     e.Ano_edicion, 
     e.Pais
-FROM Disco d JOIN Ediciones e ON d.Titulo = e.Titulo_disco --AND d.Ano_publicacion = e.Ano_publicacion
+FROM Ediciones e JOIN Disco d ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publicacion
 WHERE d.Ano_publicacion BETWEEN 1970 AND 1972
--- Coment par doc d.Titulo ASC espara poner las ediciones juntitas por el nombre del disco
-ORDER BY d.Ano_publicacion ASC, d.Titulo ASC; -- ASC es el orden por defecto, se puede omitir
+ORDER BY d.Ano_publicacion, d.Titulo; -- Coment par doc d.Titulo poner las ediciones juntitas por el nombre del disco
 
 \echo ''
 \echo 'Consulta 6: Listar el nombre de todos los grupos que han publicado discos del género ‘Electronic’. Construir la expresión equivalente en álgebra relacional.'
@@ -375,6 +374,16 @@ ORDER BY d.Ano_publicacion ASC, d.Titulo ASC; -- ASC es el orden por defecto, se
 \echo ''
 \echo 'Consulta 7: Lista de discos con la duración total del mismo, editados antes del año 2000.'
 \echo ''
+
+SELECT 
+    d.Titulo, 
+    d.Ano_publicacion, 
+    SUM(c.Duracion) AS Duracion_total
+FROM Disco d 
+JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
+WHERE d.Ano_publicacion < 2000
+GROUP BY d.Titulo, d.Ano_publicacion
+ORDER BY d.Ano_publicacion, d.Titulo;
 
 \echo ''
 \echo 'Consulta 8: Lista de ediciones de discos deseados por el usuario Lorena Sáez Pérez que tiene el usuario Juan García Gómez'
