@@ -292,6 +292,25 @@ ORDER BY Num_canciones DESC;
 \echo ''
 \echo 'Consulta 2: Mostrar los vinilos que tiene el usuario Juan García Gómez junto con el título del disco, y el país y año de edición del mismo'
 \echo ''
+SELECT 
+    E.Formato, 
+    D.Titulo AS Titulo_Disco, 
+    E.Pais, 
+    E.Ano_edicion
+FROM Usuario U
+JOIN Tiene T 
+    ON U.Nombre_user = T.Nombre_user
+JOIN Ediciones E 
+    ON T.Titulo_disco = E.Titulo_disco 
+    AND T.Ano_publicacion = E.Ano_publicacion 
+    AND T.Formato = E.Formato 
+    AND T.Ano_edicion = E.Ano_edicion 
+    AND T.Pais = E.Pais
+JOIN Disco D 
+    ON E.Titulo_disco = D.Titulo 
+    AND E.Ano_publicacion = D.Ano_publicacion
+WHERE U.Nombre = 'Juan García Gómez' 
+    AND E.Formato = 'Vinyl';
 
 \echo ''
 \echo 'Consulta 3: Disco con mayor duración de la colección. Construir la expresión equivalente en álgebra relacional.'
@@ -358,6 +377,16 @@ ORDER BY u.Nombre_user, Duracion_total DESC;
 \echo ''
 \echo 'Consulta 4: De los discos que tiene en su lista de deseos el usuario Juan García Gómez, indicar el nombre de los grupos musicales que los interpretan.'
 \echo ''
+SELECT 
+    D.Titulo_disco,
+    G.Nombre_grupo
+FROM Desea D
+JOIN Disco G
+    ON D.Titulo_disco = G.Titulo 
+    AND D.Ano_publicacion = G.Ano_publicacion
+JOIN Usuario U
+    ON D.Nombre_user = U.Nombre_user
+WHERE U.Nombre = 'Juan García Gómez';
 
 \echo ''
 \echo 'Consulta 5: Mostrar los discos publicados entre 1970 y 1972 junto con sus ediciones ordenados por el año de publicación.'
@@ -376,6 +405,14 @@ ORDER BY d.Ano_publicacion, d.Titulo; -- Coment par doc d.Titulo poner las edici
 \echo ''
 \echo 'Consulta 6: Listar el nombre de todos los grupos que han publicado discos del género ‘Electronic’. Construir la expresión equivalente en álgebra relacional.'
 \echo ''
+SELECT G.Nombre AS Nombre_Grupo
+FROM Grupo G 
+JOIN Disco D 
+    ON G.Nombre = D.Nombre_grupo
+JOIN Generos Ge
+    ON D.Titulo = Ge.Titulo_disco 
+    AND D.Ano_publicacion = Ge.Ano_publicacion
+WHERE Ge.Genero = 'Electronic';
 
 \echo ''
 \echo 'Consulta 7: Lista de discos con la duración total del mismo, editados antes del año 2000.'
