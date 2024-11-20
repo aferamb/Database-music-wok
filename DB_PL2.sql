@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS Canciones(
     Titulo_cancion TEXT NOT NULL,
     Titulo_disco TEXT NOT NULL,
     Ano_publicacion INT NOT NULL,
-    Duracion INTERVAL NOT NULL,
+    Duracion INTERVAL NOT NULL,  --------
     CONSTRAINT pk_cancion PRIMARY KEY (Titulo_cancion, Titulo_disco, Ano_publicacion),
     CONSTRAINT fk_cancion_disco FOREIGN KEY (Titulo_disco, Ano_publicacion) REFERENCES Disco(Titulo, Ano_publicacion)
     ON DELETE RESTRICT ON UPDATE CASCADE
@@ -315,15 +315,22 @@ WHERE U.Nombre = 'Juan García Gómez'
 \echo ''
 \echo 'Consulta 3: Disco con mayor duración de la colección. Construir la expresión equivalente en álgebra relacional.'
 \echo ''
-SELECT --este disco tiene la mayor duracion de todods los discos, pero no lo tiene nadie
+
+--aqui igual la consulta correcta es la primera, prguntar al profesor
+SELECT  
     d.Titulo, 
     d.Ano_publicacion, 
     SUM(c.Duracion) AS Duracion_total
 FROM Disco d
 JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
 GROUP BY d.Titulo, d.Ano_publicacion
-ORDER BY Duracion_total DESC
-LIMIT 1;
+HAVING SUM(c.Duracion) = (
+    SELECT MAX(SUM(c2.Duracion))
+    FROM Disco d2
+    JOIN Canciones c2 ON d2.Titulo = c2.Titulo_disco AND d2.Ano_publicacion = c2.Ano_publicacion
+    GROUP BY d2.Titulo, d2.Ano_publicacion
+)
+ORDER BY Duracion_total DESC;
 
 -- Consulta: Mostrar el disco cuya suma de la duración de las canciones sea la mayor de entre todos los discos de la colección de un usuario, para todos los usuarios'
 /*
