@@ -432,6 +432,32 @@ ORDER BY d.Ano_publicacion, d.Titulo;
 \echo 'Consulta 8: Lista de ediciones de discos deseados por el usuario Lorena Sáez Pérez que tiene el usuario Juan García Gómez'
 \echo ''
 
+SELECT 
+    D.Titulo, 
+    D.Ano_publicacion
+FROM Usuario U 
+JOIN Tiene T 
+    ON U.Nombre_user = T.Nombre_user
+JOIN Ediciones E 
+    ON T.Titulo_disco = E.Titulo_disco 
+    AND T.Ano_publicacion = E.Ano_publicacion
+JOIN Disco D
+    ON E.Titulo_disco = D.Titulo 
+    AND E.Ano_publicacion = D.Ano_publicacion
+WHERE U.Nombre = 'Juan García Gómez' 
+    AND EXISTS (
+        SELECT 
+            Di.Titulo, 
+            Di.Ano_publicacion 
+        FROM Usuario U2
+        JOIN Desea D2 
+            ON U2.Nombre_user = D2.Nombre_user
+        JOIN Disco Di
+            ON D2.Titulo_disco = Di.Titulo
+            AND D2.Ano_publicacion = Di.Ano_publicacion
+        WHERE U2.Nombre = 'Lorena Sáez Pérez' 
+    );
+    
 \echo ''
 \echo 'Consulta 9: Lista todas las ediciones de los discos que tiene el usuario Gómez García en un estado NM o M. Construir la expresión equivalente en álgebra relacional.'
 \echo ''
