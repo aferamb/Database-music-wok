@@ -484,6 +484,7 @@ JOIN Ediciones e ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publ
 GROUP BY g.Nombre
 HAVING COUNT(e.Titulo_disco) > 5;
 
+
 \echo ''
 \echo 'Consulta 12: Lista el usuario que más discos, contando todas sus ediciones tiene en la base de datos'
 \echo ''
