@@ -491,6 +491,17 @@ HAVING COUNT(E.Titulo_disco) = (
     )
 );
 
+WITH total_ediciones AS(
+    SELECT t.Nombre_user, COUNT(*) AS total_ediciones
+    FROM Tiene t
+    GROUP BY t.Nombre_user
+)--WITH ES UNA SUBCONSULTA (CREA UNA TABLA TEMPORAL DONDE SE MUESTRA CADA USUARIO Y TOTAL EDICIÓN DE CADA UNO)
+--DESPUÉS DEL WITH HAY QUE HACER SIEMPRE UNA CONSULTA
+SELECT u.Nombre_user, te.total_ediciones
+FROM usuario u JOIN total_ediciones te ON u.Nombre_user = te.Nombre_user
+WHERE te.total_ediciones=(SELECT MAX(total_ediciones)
+        FROM total_ediciones);
+
 
 
 ROLLBACK;     -- importante! permite correr el script multiples veces...p
