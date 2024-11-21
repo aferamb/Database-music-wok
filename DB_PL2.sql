@@ -298,24 +298,15 @@ SELECT
     E.Pais, 
     E.Ano_edicion
 FROM Usuario U
-JOIN Tiene T 
-    ON U.Nombre_user = T.Nombre_user
-JOIN Ediciones E 
-    ON T.Titulo_disco = E.Titulo_disco 
-    AND T.Ano_publicacion = E.Ano_publicacion 
-    AND T.Formato = E.Formato 
-    AND T.Ano_edicion = E.Ano_edicion 
-    AND T.Pais = E.Pais
-JOIN Disco D 
-    ON E.Titulo_disco = D.Titulo 
-    AND E.Ano_publicacion = D.Ano_publicacion
-WHERE U.Nombre = 'Juan García Gómez' 
-    AND E.Formato = 'Vinyl';
+JOIN Tiene T ON U.Nombre_user = T.Nombre_user
+JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion AND T.Formato = E.Formato AND T.Ano_edicion = E.Ano_edicion AND T.Pais = E.Pais
+JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion
+WHERE U.Nombre = 'Juan García Gómez' AND E.Formato = 'Vinyl';
 
 \echo ''
 \echo 'Consulta 3: Disco con mayor duración de la colección. Construir la expresión equivalente en álgebra relacional.'
 \echo ''
-/*
+
 WITH Duraciones AS (
     SELECT  
         d.Titulo, 
@@ -335,7 +326,7 @@ WHERE Duracion_total = (
     FROM Duraciones
 )
 ORDER BY Duracion_total DESC;
-*/
+
 /*
 SELECT 
     u.Nombre_user, 
@@ -370,11 +361,8 @@ SELECT
     D.Titulo_disco,
     G.Nombre_grupo
 FROM Desea D
-JOIN Disco G
-    ON D.Titulo_disco = G.Titulo 
-    AND D.Ano_publicacion = G.Ano_publicacion
-JOIN Usuario U
-    ON D.Nombre_user = U.Nombre_user
+JOIN Disco G ON D.Titulo_disco = G.Titulo AND D.Ano_publicacion = G.Ano_publicacion
+JOIN Usuario U ON D.Nombre_user = U.Nombre_user
 WHERE U.Nombre = 'Juan García Gómez';
 
 \echo ''
@@ -397,11 +385,8 @@ ORDER BY d.Ano_publicacion, d.Titulo; -- Coment par doc d.Titulo poner las edici
 \echo ''
 SELECT G.Nombre AS Nombre_Grupo
 FROM Grupo G 
-JOIN Disco D 
-    ON G.Nombre = D.Nombre_grupo
-JOIN Generos Ge
-    ON D.Titulo = Ge.Titulo_disco 
-    AND D.Ano_publicacion = Ge.Ano_publicacion
+JOIN Disco D ON G.Nombre = D.Nombre_grupo
+JOIN Generos Ge ON D.Titulo = Ge.Titulo_disco AND D.Ano_publicacion = Ge.Ano_publicacion
 WHERE Ge.Genero = 'Electronic';
 
 \echo ''
@@ -426,28 +411,20 @@ SELECT
     D.Titulo, 
     D.Ano_publicacion
 FROM Usuario U 
-JOIN Tiene T 
-    ON U.Nombre_user = T.Nombre_user
-JOIN Ediciones E 
-    ON T.Titulo_disco = E.Titulo_disco 
-    AND T.Ano_publicacion = E.Ano_publicacion
-JOIN Disco D
-    ON E.Titulo_disco = D.Titulo 
-    AND E.Ano_publicacion = D.Ano_publicacion
+JOIN Tiene T ON U.Nombre_user = T.Nombre_user
+JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion
+JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion
 WHERE U.Nombre = 'Juan García Gómez' 
-    AND EXISTS (
-        SELECT 
-            Di.Titulo, 
-            Di.Ano_publicacion 
-        FROM Usuario U2
-        JOIN Desea D2 
-            ON U2.Nombre_user = D2.Nombre_user
-        JOIN Disco Di
-            ON D2.Titulo_disco = Di.Titulo
-            AND D2.Ano_publicacion = Di.Ano_publicacion
-        WHERE U2.Nombre = 'Lorena Sáez Pérez' 
-    );
-    
+AND EXISTS (
+    SELECT 
+        Di.Titulo, 
+        Di.Ano_publicacion 
+    FROM Usuario U2
+    JOIN Desea D2 ON U2.Nombre_user = D2.Nombre_user
+    JOIN Disco Di ON D2.Titulo_disco = Di.Titulo AND D2.Ano_publicacion = Di.Ano_publicacion
+    WHERE U2.Nombre = 'Lorena Sáez Pérez' 
+);
+
 \echo ''
 \echo 'Consulta 9: Lista todas las ediciones de los discos que tiene el usuario Gómez García en un estado NM o M. Construir la expresión equivalente en álgebra relacional.'
 \echo ''
