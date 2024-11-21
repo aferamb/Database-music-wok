@@ -315,7 +315,7 @@ WHERE U.Nombre = 'Juan García Gómez'
 \echo ''
 \echo 'Consulta 3: Disco con mayor duración de la colección. Construir la expresión equivalente en álgebra relacional.'
 \echo ''
-
+/*
 WITH Duraciones AS (
     SELECT  
         d.Titulo, 
@@ -335,7 +335,7 @@ WHERE Duracion_total = (
     FROM Duraciones
 )
 ORDER BY Duracion_total DESC;
-
+*/
 /*
 SELECT 
     u.Nombre_user, 
@@ -467,9 +467,7 @@ WHERE u.Nombre LIKE '%G_mez Garc_a%' AND Estado IN ('NM', 'M');
 \echo ''
 \echo 'Consulta 10: Listar todos los usuarios junto al número de ediciones que tiene de todos los discos junto al año de lanzamiento de su disco más antiguo, el año de lanzamiento de su disco más nuevo, y el año medio de todos sus discos de su colección'
 \echo ''
-SELECT
-FROM
-WHERE
+
 
 \echo ''
 \echo 'Consulta 11: Listar el nombre de los grupos que tienen más de 5 ediciones de sus discos en la base de datos'
@@ -487,6 +485,7 @@ HAVING COUNT(e.Titulo_disco) > 5;
 \echo ''
 \echo 'Consulta 12: Lista el usuario que más discos, contando todas sus ediciones tiene en la base de datos'
 \echo ''
+
 SELECT U.Nombre_user, COUNT(E.Ediciones) AS Num_ediciones
 FROM Usuario U 
 JOIN Tiene T ON U.Nombre_user = T.Nombre_user 
