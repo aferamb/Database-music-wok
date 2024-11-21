@@ -316,7 +316,6 @@ WHERE U.Nombre = 'Juan García Gómez'
 \echo 'Consulta 3: Disco con mayor duración de la colección. Construir la expresión equivalente en álgebra relacional.'
 \echo ''
 
---aqui igual la consulta correcta es la primera, prguntar al profesor
 SELECT  
     d.Titulo, 
     d.Ano_publicacion, 
@@ -332,29 +331,7 @@ HAVING SUM(c.Duracion) = (
 )
 ORDER BY Duracion_total DESC;
 
--- Consulta: Mostrar el disco cuya suma de la duración de las canciones sea la mayor de entre todos los discos de la colección de un usuario, para todos los usuarios'
 /*
-The query joins several tables to gather the necessary data:
-
-Usuario (u) is joined with Tiene (t) on the user's name.
-Tiene is joined with Canciones (c) on the album title and publication year.
-Canciones is joined with Disco (d) on the album title and publication year.
-
-The results are grouped by the user's name, album title, and publication year. 
-This grouping allows the query to calculate the total duration of songs for each album per user.
-
-The HAVING clause filters the results to include only those albums where the total duration of songs matches
-the maximum total duration for that user. This is achieved through a subquery that calculates 
-the maximum total duration of songs for each user. 
-The subquery groups the data by user, album title, and publication year, and then calculates the total duration
- of songs for each group. The outer query compares the total duration of each album to this maximum value.
-
-Finally, the results are ordered by the user's name and the total duration of songs in descending order 
-(ORDER BY u.Nombre_user, Duracion_total DESC). 
-This ensures that the albums with the longest total duration appear first for each user.
-*/
-
--- Que me fumado (y el copilot) , no se puede hacer algebra relacional de esto, es una consulta muy compleja
 SELECT 
     u.Nombre_user, 
     d.Titulo, 
@@ -379,7 +356,7 @@ HAVING SUM(c.Duracion) = (
     WHERE subquery.Nombre_user = u.Nombre_user
 )
 ORDER BY u.Nombre_user, Duracion_total DESC;
-
+*/
 
 \echo ''
 \echo 'Consulta 4: De los discos que tiene en su lista de deseos el usuario Juan García Gómez, indicar el nombre de los grupos musicales que los interpretan.'
@@ -397,7 +374,8 @@ WHERE U.Nombre = 'Juan García Gómez';
 
 \echo ''
 \echo 'Consulta 5: Mostrar los discos publicados entre 1970 y 1972 junto con sus ediciones ordenados por el año de publicación.'
-\echo '' -- para que se vea mejor, incluir algebra relacional
+\echo '' 
+
 SELECT 
     d.Titulo, 
     d.Ano_publicacion, 
