@@ -316,18 +316,23 @@ WHERE U.Nombre = 'Juan García Gómez'
 \echo 'Consulta 3: Disco con mayor duración de la colección. Construir la expresión equivalente en álgebra relacional.'
 \echo ''
 
-SELECT  
-    d.Titulo, 
-    d.Ano_publicacion, 
-    SUM(c.Duracion) AS Duracion_total
-FROM Disco d
-JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
-GROUP BY d.Titulo, d.Ano_publicacion
-HAVING SUM(c.Duracion) = (
-    SELECT MAX(SUM(c2.Duracion))
-    FROM Disco d2
-    JOIN Canciones c2 ON d2.Titulo = c2.Titulo_disco AND d2.Ano_publicacion = c2.Ano_publicacion
-    GROUP BY d2.Titulo, d2.Ano_publicacion
+WITH Duraciones AS (
+    SELECT  
+        d.Titulo, 
+        d.Ano_publicacion, 
+        SUM(c.Duracion) AS Duracion_total
+    FROM Disco d
+    JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
+    GROUP BY d.Titulo, d.Ano_publicacion
+)
+SELECT 
+    Titulo, 
+    Ano_publicacion, 
+    Duracion_total
+FROM Duraciones
+WHERE Duracion_total = (
+    SELECT MAX(Duracion_total)
+    FROM Duraciones
 )
 ORDER BY Duracion_total DESC;
 
