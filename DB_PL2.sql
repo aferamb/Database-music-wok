@@ -467,6 +467,16 @@ WHERE u.Nombre LIKE '%G_mez Garc_a%' AND Estado IN ('NM', 'M');
 \echo ''
 \echo 'Consulta 10: Listar todos los usuarios junto al número de ediciones que tiene de todos los discos junto al año de lanzamiento de su disco más antiguo, el año de lanzamiento de su disco más nuevo, y el año medio de todos sus discos de su colección'
 \echo ''
+SELECT U.Nombre_user, 
+    COUNT(E.Titulo_disco) AS Num_ediciones, 
+    MIN(E.Ano_publicacion) AS Ano_lanzamiento_mas_antiguo, 
+    MAX(E.Ano_publicacion) AS Ano_lanzamiento_mas_reciente, 
+    ROUND(AVG(E.Ano_publicacion), 2) AS Ano_medio
+FROM Usuario U 
+JOIN Tiene T ON U.Nombre_user = T.Nombre_user
+JOIN Disco D ON T.Titulo_disco = D.Titulo AND T.Ano_publicacion = D.Ano_publicacion
+JOIN Ediciones E ON D.Titulo = E.Titulo_disco AND D.Ano_publicacion = E.Ano_publicacion
+GROUP BY U.Nombre_user;
 
 
 \echo ''
@@ -486,13 +496,24 @@ HAVING COUNT(e.Titulo_disco) > 5;
 \echo 'Consulta 12: Lista el usuario que más discos, contando todas sus ediciones tiene en la base de datos'
 \echo ''
 
-SELECT U.Nombre_user, COUNT(E.Ediciones) AS Num_ediciones
+SELECT U.Nombre_user, COUNT(E.Titulo_disco) AS Num_ediciones
 FROM Usuario U 
-JOIN Tiene T ON U.Nombre_user = T.Nombre_user 
-JOIN Disco D ON T.Titulo_disco = D.Titulo AND T.Ano_publicacion = D.Ano_publicacion 
+JOIN Tiene T ON U.Nombre_user = T.Nombre_user
+JOIN Disco D ON T.Titulo_disco = D.Titulo AND T.Ano_publicacion = D.Ano_publicacion
 JOIN Ediciones E ON D.Titulo = E.Titulo_disco AND D.Ano_publicacion = E.Ano_publicacion
 GROUP BY U.Nombre_user
-ORDER BY Num_ediciones DESC ;
+HAVING COUNT(E.Titulo_disco) = (
+    SELECT MAX(Num_ediciones)
+    FROM (
+        SELECT COUNT(E.Titulo_disco) AS Num_ediciones
+        FROM Usuario U
+        JOIN Tiene T ON U.Nombre_user = T.Nombre_user
+        JOIN Disco D ON T.Titulo_disco = D.Titulo AND T.Ano_publicacion = D.Ano_publicacion
+        JOIN Ediciones E ON D.Titulo = E.Titulo_disco AND D.Ano_publicacion = E.Ano_publicacion
+        GROUP BY U.Nombre_user
+    )
+);
+
 
 
 ROLLBACK;     -- importante! permite correr el script multiples veces...p
