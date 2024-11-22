@@ -444,19 +444,26 @@ WHERE u.Nombre LIKE '%G_mez Garc_a%' AND Estado IN ('NM', 'M');
 \echo ''
 \echo 'Consulta 10: Listar todos los usuarios junto al número de ediciones que tiene de todos los discos junto al año de lanzamiento de su disco más antiguo, el año de lanzamiento de su disco más nuevo, y el año medio de todos sus discos de su colección'
 \echo ''
-WITH total_ediciones AS(
+WITH total_ediciones AS (
     SELECT t.Nombre_user, COUNT(*) AS total_ediciones
     FROM Tiene t
     GROUP BY t.Nombre_user
 )
-SELECT u.Nombre_user, te.total_ediciones, 
+SELECT 
+    u.Nombre_user, 
+    te.total_ediciones, 
     MIN(T.Ano_publicacion) AS Ano_lanzamiento_mas_antiguo, 
     MAX(T.Ano_publicacion) AS Ano_lanzamiento_mas_reciente, 
     ROUND(AVG(T.Ano_publicacion), 0) AS Ano_medio
-FROM usuario u JOIN total_ediciones te ON u.Nombre_user = te.Nombre_user 
-JOIN Tiene T ON u.Nombre_user = T.Nombre_user
-GROUP BY u.Nombre_user, T.Ano_publicacion, te.total_ediciones
-HAVING T.Ano_publicacion > 0;
+FROM 
+    usuario u 
+    JOIN total_ediciones te ON u.Nombre_user = te.Nombre_user
+    JOIN Tiene T ON u.Nombre_user = T.Nombre_user
+WHERE 
+    T.Ano_publicacion > 0
+GROUP BY 
+    u.Nombre_user, te.total_ediciones;
+
 
 \echo ''
 \echo 'Consulta 11: Listar el nombre de los grupos que tienen más de 5 ediciones de sus discos en la base de datos'
