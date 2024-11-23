@@ -399,7 +399,7 @@ SELECT
     SUM(c.Duracion) AS Duracion_total
 FROM Disco d 
 JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
-WHERE d.Ano_publicacion < 2000
+WHERE d.Ano_publicacion < 2000 AND d.Ano_publicacion > 0
 GROUP BY d.Titulo, d.Ano_publicacion
 ORDER BY d.Ano_publicacion, d.Titulo;
 
@@ -462,7 +462,7 @@ FROM
 WHERE 
     T.Ano_publicacion > 0
 GROUP BY 
-    u.Nombre_user, te.total_ediciones;
+    u.Nombre_user, te.total_ediciones;  
 
 
 \echo ''
