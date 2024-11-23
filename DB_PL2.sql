@@ -481,24 +481,6 @@ HAVING COUNT(e.Titulo_disco) > 5;
 \echo ''
 \echo 'Consulta 12: Lista el usuario que más discos, contando todas sus ediciones tiene en la base de datos'
 \echo ''
-/*
-SELECT U.Nombre_user, COUNT(E.Titulo_disco) AS Num_ediciones
-FROM Usuario U 
-JOIN Tiene T ON U.Nombre_user = T.Nombre_user
-JOIN Disco D ON T.Titulo_disco = D.Titulo AND T.Ano_publicacion = D.Ano_publicacion
-JOIN Ediciones E ON D.Titulo = E.Titulo_disco AND D.Ano_publicacion = E.Ano_publicacion
-GROUP BY U.Nombre_user
-HAVING COUNT(E.Titulo_disco) = (
-    SELECT MAX(Num_ediciones)
-    FROM (
-        SELECT COUNT(E.Titulo_disco) AS Num_ediciones
-        FROM Usuario U
-        JOIN Tiene T ON U.Nombre_user = T.Nombre_user
-        JOIN Disco D ON T.Titulo_disco = D.Titulo AND T.Ano_publicacion = D.Ano_publicacion
-        JOIN Ediciones E ON D.Titulo = E.Titulo_disco AND D.Ano_publicacion = E.Ano_publicacion
-        GROUP BY U.Nombre_user
-    )
-);*/
 
 WITH total_ediciones AS(
     SELECT t.Nombre_user, COUNT(*) AS total_ediciones
