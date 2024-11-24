@@ -288,7 +288,7 @@ FROM Duraciones
 WHERE Duracion_total = (
     SELECT MAX(Duracion_total)
     FROM Duraciones
-) AND Ano_publicacion > 0
+) 
 ORDER BY Duracion_total DESC;
 
 /*  Muestra el disco con mayor duración de cada colección de cada usuario
