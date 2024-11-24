@@ -2,33 +2,13 @@
 
 SET client_encoding = 'UTF8';
 
-/*
- * Buscar en la documentación oficial de PostgreSQL:
- * REGEXP_MATCHES_TO_TABLE
- * RPLACE
- * REGEXP_REPLACE
- * MAKE_INTERVAL
- * TO_CHAR
- * 
- * \COPY NOMBRE ARCHIVO FROM 'RUTA' DELIMITER 'DELIMITADOR' NULL 'NULL' CSV ENCODING 'UTF8' HEADER;
- * 
-
-Igual en alguna consulta se muestran datos extra que no se necesitan o se pueden omitir,
- pero es para que se vea mejor
-
-
- * comprueva que no haya valores no numericos en Fecha_lanz
-    SELECT *
-    FROM Discos_temp
-    WHERE Fecha_lanz !~ '^[0-9]+$';
-*/
-
 BEGIN;
+
 \echo '         Creando el esquema para la BBDD de intercambio de discos'
 
 CREATE TABLE IF NOT EXISTS Grupo(
     Nombre TEXT NOT NULL,
-    Url_grupo TEXT, -- NOT NULL
+    Url_grupo TEXT, 
     CONSTRAINT pk_grupo PRIMARY KEY (Nombre)
 );
 
@@ -54,7 +34,7 @@ CREATE TABLE IF NOT EXISTS Canciones(
     Titulo_cancion TEXT NOT NULL,
     Titulo_disco TEXT NOT NULL,
     Ano_publicacion INT NOT NULL,
-    Duracion INTERVAL NOT NULL,  --------
+    Duracion INTERVAL NOT NULL, 
     CONSTRAINT pk_cancion PRIMARY KEY (Titulo_cancion, Titulo_disco, Ano_publicacion),
     CONSTRAINT fk_cancion_disco FOREIGN KEY (Titulo_disco, Ano_publicacion) REFERENCES Disco(Titulo, Ano_publicacion)
     ON DELETE RESTRICT ON UPDATE CASCADE
@@ -64,7 +44,7 @@ CREATE TABLE IF NOT EXISTS Ediciones(
     Titulo_disco TEXT NOT NULL,
     Ano_publicacion INT NOT NULL,
     Formato TEXT NOT NULL,
-    Ano_edicion INT NOT NULL, --FORMAT('YYYY')
+    Ano_edicion INT NOT NULL, 
     Pais TEXT NOT NULL,
     CONSTRAINT pk_edicion PRIMARY KEY (Titulo_disco, Ano_publicacion, Formato, Ano_edicion, Pais),
     CONSTRAINT fk_cancion_disco FOREIGN KEY (Titulo_disco, Ano_publicacion) REFERENCES Disco(Titulo, Ano_publicacion)
@@ -115,7 +95,7 @@ CREATE TABLE IF NOT EXISTS Canciones_temp(
 CREATE TABLE IF NOT EXISTS Discos_temp(
     Id_disco TEXT,
     Nombre_disco TEXT,
-    Fecha_lanz TEXT, -------------------> INT
+    Fecha_lanz TEXT,
     Id_grupo TEXT,
     Nombre_grupo TEXT,
     Url_grupo TEXT,
@@ -154,7 +134,7 @@ CREATE TABLE IF NOT EXISTS Usuarios_temp(
 );
 
 
-SET search_path TO public;  -- este comando estaba como SET search_path =''; en el script original y era el que estaba dando problemas con las tablas 
+SET search_path TO public;  --esquema public
 
 \echo '         Cargando datos'
 
@@ -167,12 +147,15 @@ SET search_path TO public;  -- este comando estaba como SET search_path =''; en 
 
 \echo '         Insertando datos en el esquema final'
 \echo ''
+
+
 \echo 'Insercion de datos tabla Grupo'
 INSERT INTO Grupo(Nombre, Url_grupo) 
 SELECT DISTINCT ON (Nombre_grupo)
     Nombre_grupo, 
     Url_grupo 
 FROM Discos_temp;
+
 
 \echo 'Insercion de datos tabla Disco'
 INSERT INTO Disco(Titulo, Ano_publicacion, Url_portada, Nombre_grupo) 
@@ -181,8 +164,8 @@ SELECT DISTINCT ON (Nombre_disco, Fecha_lanz)
     Fecha_lanz::INT, 
     Url_portada, 
     Nombre_grupo 
-FROM Discos_temp; -- count (*) select on n_discos
---discos del año 0 se consideran que no se sabe el año de publicacion
+FROM Discos_temp; 
+
 
 \echo 'Insercion de datos tabla Generos'
 INSERT INTO Generos (Titulo_disco, Ano_publicacion, Genero)
@@ -193,27 +176,6 @@ SELECT DISTINCT
 FROM Discos_temp;
 
 
-/*
-INSERT INTO Canciones(Titulo_cancion, Titulo_disco, Ano_publicacion, Duracion)
-SELECT 
-    Titulo, -- Titulo de la canción
-    Nombre_disco, -- Nombre del disco
-    Fecha_lanz::INT, 
-    -- Verificar si Duracion es NULL, y si no lo es, convertirla a INTERVAL
-    CASE 
-        WHEN Duracion IS NOT NULL THEN
-            -- Convertir Duracion (mm:ss) a INTERVAL
-            make_interval(
-                mins => split_part(Duracion, ':', 1)::INT, 
-                secs => split_part(Duracion, ':', 2)::INT
-            )
-        ELSE 
-            NULL -- Mantener NULL si la Duracion es NULL
-    END AS Duracion
-FROM Canciones_temp c
-JOIN Discos_temp d ON c.Id_disco = d.Id_disco
-WHERE c.Titulo != '';
-*/
 \echo 'Insercion de datos tabla Canciones'
 INSERT INTO Canciones(Titulo_cancion, Titulo_disco, Ano_publicacion, Duracion)
 SELECT DISTINCT ON (Titulo, Nombre_disco, Fecha_lanz)
@@ -223,10 +185,11 @@ SELECT DISTINCT ON (Titulo, Nombre_disco, Fecha_lanz)
     make_interval( -- Convertir Duracion (mm:ss) a INTERVAL usando make_interval
         mins => split_part(Duracion, ':', 1)::INT, 
         secs => split_part(Duracion, ':', 2)::INT
-    ) --si no hubiese canciones de mas 60 min  ('00:' || Duracion) ::INTERVAL
+    )
 FROM Canciones_temp c 
 JOIN Discos_temp d ON c.Id_disco = d.Id_disco
-WHERE c.Titulo != '' AND Duracion IS NOT NULL;
+WHERE c.Titulo != '' AND Duracion IS NOT NULL; -- No se insertan canciones sin título y sin duración
+
 
 \echo 'Insercion de datos tabla Ediciones'
 INSERT INTO Ediciones(Titulo_disco, Ano_publicacion, Formato, Ano_edicion, Pais)
@@ -238,6 +201,7 @@ SELECT DISTINCT -- en todo porque todo es PK
     Pais
 FROM Ediciones_temp e JOIN Discos_temp d ON e.Id_disco = d.Id_disco;
 
+
 \echo 'Insercion de datos tabla Usuario'
 INSERT INTO Usuario(Nombre_user, Nombre, Email, Contrasena)
 SELECT DISTINCT ON (Nombre_user)
@@ -246,6 +210,7 @@ SELECT DISTINCT ON (Nombre_user)
     Email, 
     Contrasena
 FROM Usuarios_temp;
+
 
 \echo 'Insercion de datos tabla Tiene'
 -- No se incluyen los usuarios que no existen en la tabla de usuarios
@@ -259,6 +224,7 @@ SELECT DISTINCT ON (ute.Nombre_user, ute.Titulo_disco, ute.Ano_lanz, ute.Formato
     Pais, 
     Estado
 FROM Usuario_tiene_edicion_temp ute JOIN Usuarios_temp u ON ute.Nombre_user = u.Nombre_user;
+
 
 \echo 'Insercion de datos tabla Desea'
 -- No se incluyen los usuarios que no existen en la tabla de usuarios
@@ -274,7 +240,6 @@ FROM Usuario_desea_disco_temp udd JOIN Usuarios_temp u ON udd.Nombre_user = u.No
 \echo ''
 
 \echo 'Consulta 1: Mostrar los discos que tengan más de 5 canciones. Construir la expresión equivalente en álgebra relacional.'
--- 'Álgebra relacional: π_Titulo, Ano_publicacion, Num_canciones(σ_COUNT(Titulo_cancion) > 5(Disco ⨝ Canciones))'
 \echo ''
 
 SELECT DISTINCT 
@@ -284,8 +249,6 @@ SELECT DISTINCT
 FROM Disco d
 JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
 GROUP BY d.Titulo, d.Ano_publicacion
--- No se puede usar WHERE porque estamos filtrando por una función de agregación, y WHERE se usa para filtrar antes de la agregación
--- Solo se puede evaluar COUNT(c.Titulo_cancion) después de haber agrupado con GROUP BY
 HAVING COUNT(c.Titulo_cancion) > 5 AND d.Ano_publicacion > 0
 ORDER BY Num_canciones DESC;
 
@@ -328,7 +291,7 @@ WHERE Duracion_total = (
 ) AND Ano_publicacion > 0
 ORDER BY Duracion_total DESC;
 
-/*
+/*  Muestra el disco con mayor duración de cada colección de cada usuario
 SELECT 
     u.Nombre_user, 
     d.Titulo, 
@@ -380,7 +343,7 @@ SELECT
     e.Pais
 FROM Ediciones e JOIN Disco d ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publicacion
 WHERE d.Ano_publicacion BETWEEN 1970 AND 1972 AND d.Ano_publicacion > 0 --
-ORDER BY d.Ano_publicacion, d.Titulo; -- Coment par doc d.Titulo poner las ediciones juntitas por el nombre del disco
+ORDER BY d.Ano_publicacion, d.Titulo; 
 
 \echo ''
 \echo 'Consulta 6: Listar el nombre de todos los grupos que han publicado discos del género ‘Electronic’. Construir la expresión equivalente en álgebra relacional.'
@@ -431,7 +394,6 @@ AND EXISTS (
 \echo ''
 \echo 'Consulta 9: Lista todas las ediciones de los discos que tiene el usuario Gómez García en un estado NM o M. Construir la expresión equivalente en álgebra relacional.'
 \echo ''
--- 'Álgebra relacional: π_Nombre_user, Titulo_disco, Ano_publicacion, Formato, Ano_edicion, Pais, Estado(σ_Nombre = 'Gómez García' AND Estado IN ('NM', 'M')(Tiene ⨝ Usuario))'
 
 SELECT
     u.Nombre, 
@@ -490,8 +452,7 @@ WITH total_ediciones AS(
     SELECT t.Nombre_user, COUNT(*) AS total_ediciones
     FROM Tiene t
     GROUP BY t.Nombre_user
-)--WITH ES UNA SUBCONSULTA (CREA UNA TABLA TEMPORAL DONDE SE MUESTRA CADA USUARIO Y TOTAL EDICIÓN DE CADA UNO)
---DESPUÉS DEL WITH HAY QUE HACER SIEMPRE UNA CONSULTA
+)
 SELECT u.Nombre_user, te.total_ediciones
 FROM usuario u JOIN total_ediciones te ON u.Nombre_user = te.Nombre_user
 WHERE te.total_ediciones=(SELECT MAX(total_ediciones)
@@ -499,4 +460,4 @@ WHERE te.total_ediciones=(SELECT MAX(total_ediciones)
 
 
 
-ROLLBACK;     -- importante! permite correr el script multiples veces...p
+ROLLBACK;     -- importante! permite correr el script multiples veces
