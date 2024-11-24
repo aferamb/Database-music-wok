@@ -274,9 +274,9 @@ FROM Usuario_desea_disco_temp udd JOIN Usuarios_temp u ON udd.Nombre_user = u.No
 \echo ''
 
 \echo 'Consulta 1: Mostrar los discos que tengan más de 5 canciones. Construir la expresión equivalente en álgebra relacional.'
--- WTF no sabia que el copilot podia hacer algebra relacional, aunque no es tan dificil de hacer, y no se si lo hace bien xd
 -- 'Álgebra relacional: π_Titulo, Ano_publicacion, Num_canciones(σ_COUNT(Titulo_cancion) > 5(Disco ⨝ Canciones))'
 \echo ''
+
 SELECT DISTINCT 
     d.Titulo, 
     d.Ano_publicacion, 
@@ -286,7 +286,7 @@ JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publ
 GROUP BY d.Titulo, d.Ano_publicacion
 -- No se puede usar WHERE porque estamos filtrando por una función de agregación, y WHERE se usa para filtrar antes de la agregación
 -- Solo se puede evaluar COUNT(c.Titulo_cancion) después de haber agrupado con GROUP BY
-HAVING COUNT(c.Titulo_cancion) > 5 -- HAVING se usa para filtrar resultados de una consulta agrupada.
+HAVING COUNT(c.Titulo_cancion) > 5 AND d.Ano_publicacion > 0
 ORDER BY Num_canciones DESC;
 
 \echo ''
@@ -301,7 +301,7 @@ FROM Usuario U
 JOIN Tiene T ON U.Nombre_user = T.Nombre_user
 JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion AND T.Formato = E.Formato AND T.Ano_edicion = E.Ano_edicion AND T.Pais = E.Pais
 JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion
-WHERE U.Nombre = 'Juan García Gómez' AND E.Formato = 'Vinyl';
+WHERE U.Nombre = 'Juan García Gómez' AND E.Formato = 'Vinyl' AND E.Ano_edicion > 0;
 
 \echo ''
 \echo 'Consulta 3: Disco con mayor duración de la colección. Construir la expresión equivalente en álgebra relacional.'
@@ -314,6 +314,7 @@ WITH Duraciones AS (
         SUM(c.Duracion) AS Duracion_total
     FROM Disco d
     JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
+    WHERE d.Ano_publicacion > 0
     GROUP BY d.Titulo, d.Ano_publicacion
 )
 SELECT 
@@ -324,7 +325,7 @@ FROM Duraciones
 WHERE Duracion_total = (
     SELECT MAX(Duracion_total)
     FROM Duraciones
-)
+) AND Ano_publicacion > 0
 ORDER BY Duracion_total DESC;
 
 /*
@@ -357,6 +358,7 @@ ORDER BY u.Nombre_user, Duracion_total DESC;
 \echo ''
 \echo 'Consulta 4: De los discos que tiene en su lista de deseos el usuario Juan García Gómez, indicar el nombre de los grupos musicales que los interpretan.'
 \echo ''
+
 SELECT 
     D.Titulo_disco,
     G.Nombre_grupo
@@ -377,12 +379,13 @@ SELECT
     e.Ano_edicion, 
     e.Pais
 FROM Ediciones e JOIN Disco d ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publicacion
-WHERE d.Ano_publicacion BETWEEN 1970 AND 1972
+WHERE d.Ano_publicacion BETWEEN 1970 AND 1972 AND d.Ano_publicacion > 0 --
 ORDER BY d.Ano_publicacion, d.Titulo; -- Coment par doc d.Titulo poner las ediciones juntitas por el nombre del disco
 
 \echo ''
 \echo 'Consulta 6: Listar el nombre de todos los grupos que han publicado discos del género ‘Electronic’. Construir la expresión equivalente en álgebra relacional.'
 \echo ''
+
 SELECT G.Nombre AS Nombre_Grupo
 FROM Grupo G 
 JOIN Disco D ON G.Nombre = D.Nombre_grupo
@@ -414,7 +417,7 @@ FROM Usuario U
 JOIN Tiene T ON U.Nombre_user = T.Nombre_user
 JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion
 JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion
-WHERE U.Nombre = 'Juan García Gómez' 
+WHERE U.Nombre = 'Juan García Gómez' AND D.Ano_publicacion > 0
 AND EXISTS (
     SELECT 
         Di.Titulo, 
@@ -439,11 +442,12 @@ SELECT
     t.Pais, 
     t.Estado
 FROM Tiene t JOIN Usuario u ON t.Nombre_user = u.Nombre_user
-WHERE u.Nombre LIKE '%G_mez Garc_a%' AND Estado IN ('NM', 'M');
+WHERE u.Nombre LIKE '%G_mez Garc_a%' AND Estado IN ('NM', 'M') AND t.Ano_publicacion > 0 AND t.Ano_edicion > 0;
 
 \echo ''
 \echo 'Consulta 10: Listar todos los usuarios junto al número de ediciones que tiene de todos los discos junto al año de lanzamiento de su disco más antiguo, el año de lanzamiento de su disco más nuevo, y el año medio de todos sus discos de su colección'
 \echo ''
+
 WITH total_ediciones AS (
     SELECT t.Nombre_user, COUNT(*) AS total_ediciones
     FROM Tiene t
