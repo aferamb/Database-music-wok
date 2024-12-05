@@ -263,7 +263,7 @@ SELECT
 FROM Usuario U
 JOIN Tiene T ON U.Nombre_user = T.Nombre_user
 JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion AND T.Formato = E.Formato AND T.Ano_edicion = E.Ano_edicion AND T.Pais = E.Pais
-JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion
+JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion --se puede obviar
 WHERE U.Nombre = 'Juan García Gómez' AND E.Formato = 'Vinyl' AND E.Ano_edicion > 0;
 
 \echo ''
@@ -289,7 +289,7 @@ WHERE Duracion_total = (
     SELECT MAX(Duracion_total)
     FROM Duraciones
 ) 
-ORDER BY Duracion_total DESC;
+ORDER BY Duracion_total DESC; --se puede obviar
 
 /*  Muestra el disco con mayor duración de cada colección de cada usuario
 SELECT 
@@ -327,7 +327,7 @@ SELECT
     G.Nombre_grupo
 FROM Desea D
 JOIN Disco G ON D.Titulo_disco = G.Titulo AND D.Ano_publicacion = G.Ano_publicacion
-JOIN Usuario U ON D.Nombre_user = U.Nombre_user
+JOIN Usuario U ON D.Nombre_user = U.Nombre_user 
 WHERE U.Nombre = 'Juan García Gómez';
 
 \echo ''
@@ -342,7 +342,7 @@ SELECT
     e.Ano_edicion, 
     e.Pais
 FROM Ediciones e JOIN Disco d ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publicacion
-WHERE d.Ano_publicacion BETWEEN 1970 AND 1972 AND d.Ano_publicacion > 0 --
+WHERE d.Ano_publicacion BETWEEN 1970 AND 1972 AND d.Ano_publicacion > 0 
 ORDER BY d.Ano_publicacion, d.Titulo; 
 
 \echo ''
@@ -350,7 +350,7 @@ ORDER BY d.Ano_publicacion, d.Titulo;
 \echo ''
 
 SELECT G.Nombre AS Nombre_Grupo
-FROM Grupo G 
+FROM Grupo G --se puede obviar
 JOIN Disco D ON G.Nombre = D.Nombre_grupo
 JOIN Generos Ge ON D.Titulo = Ge.Titulo_disco AND D.Ano_publicacion = Ge.Ano_publicacion
 WHERE Ge.Genero = 'Electronic';
@@ -379,7 +379,7 @@ SELECT
 FROM Usuario U 
 JOIN Tiene T ON U.Nombre_user = T.Nombre_user
 JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion
-JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion
+JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion --se puede obviar
 WHERE U.Nombre = 'Juan García Gómez' AND D.Ano_publicacion > 0
 AND EXISTS (
     SELECT 
