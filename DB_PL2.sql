@@ -460,4 +460,4 @@ WHERE te.total_ediciones=(SELECT MAX(total_ediciones)
 
 
 
-ROLLBACK;     -- importante! permite correr el script multiples veces
+COMMIT;     -- importante! permite correr el script multiples veces
