@@ -34,5 +34,5 @@ $fn_auditoria$ LANGUAGE plpgsql;
 -- Se crea el trigger que se dispara cuando hay una inserción, modificación o borrado en la tabla sala
 
 CREATE TRIGGER tg_auditoria after INSERT or UPDATE or DELETE
-  ON SALA FOR EACH ROW
+  ON nombre_tabla FOR EACH ROW
   EXECUTE PROCEDURE fn_auditoria(); 
