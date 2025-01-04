@@ -1,13 +1,12 @@
 --Triger de auditoría
 
 CREATE TABLE IF NOT EXISTS auditoria (
-    id INT AUTO_INCREMENT NOT NULL,
+    id SERIAL NOT NULL,
     tabla VARCHAR(100) NOT NULL,
     operacion VARCHAR(100) NOT NULL,
     usuario VARCHAR(100) NOT NULL,
     fecha TIMESTAMP NOT NULL,   --en el select se separará en fecha y hora
     CONSTRAINT pk_auditoria PRIMARY KEY (id)
-
 );
 
 
@@ -18,7 +17,7 @@ CREATE OR REPLACE FUNCTION fn_auditoria() RETURNS TRIGGER AS $fn_auditoria$
   --  no declaro nada porque no me hace falta...de hecho DECLARE podría haberlo omitido en éste caso
   BEGIN
   -- Insertar una fila en la tabla de auditoría con los valores de la tabla, operación, usuario y fecha actual
-    INSERT INTO auditoria VALUES (TG_TABLE_NAME, TG_OP, SESSION_USER, current_timestamp);
+    INSERT INTO auditoria (tabla, operacion, usuario, fecha) VALUES (TG_TABLE_NAME, TG_OP, SESSION_USER, current_timestamp);
     RETURN NULL;
   END;
 $fn_auditoria$ LANGUAGE plpgsql;

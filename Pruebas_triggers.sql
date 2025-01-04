@@ -1,6 +1,6 @@
 
 INSERT INTO Grupo VALUES ('Atlanticos', 'www.hola.com');
-UPDATE Grupo SET web = 'www.adios.com' WHERE nombre = 'Atlanticos';
+UPDATE Grupo SET Url_grupo = 'www.adios.com' WHERE Nombre = 'Atlanticos';
 DELETE FROM Grupo WHERE nombre = 'Atlanticos';
 
 INSERT INTO Usuario VALUES ('Alexito', 'Alex Ambros', 'holas@gmail.com', '1234');   
