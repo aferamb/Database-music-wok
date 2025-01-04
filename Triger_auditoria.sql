@@ -76,13 +76,13 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM Desea
-        WHERE id_usuario = NEW.id_usuario
-          AND id_disco = NEW.id_disco
+        WHERE Nombre_user = NEW.Nombre_user
+          AND Titulo_disco = NEW.Titulo_disco
     ) THEN
         -- Eliminar el disco de la lista de deseados
-        DELETE FROM lista_deseados
-        WHERE id_usuario = NEW.id_usuario
-          AND id_disco = NEW.id_disco;
+        DELETE FROM Desea
+        WHERE Nombre_user = NEW.Nombre_user
+          AND Titulo_disco = NEW.Titulo_disco;
     END IF;
 
     -- Continuar con la inserción normalmente
@@ -95,6 +95,5 @@ $fn_eliminar_de_deseados$ LANGUAGE plpgsql;
 
 CREATE TRIGGER tg_eliminar_de_deseados
     AFTER INSERT
-    ON usuario_tiene_edicion
-    FOR EACH ROW
+    ON Tiene FOR EACH ROW
     EXECUTE PROCEDURE fn_eliminar_de_deseados();
