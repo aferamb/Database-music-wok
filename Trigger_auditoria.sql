@@ -79,28 +79,3 @@ CREATE TRIGGER tg_eliminar_de_deseados
     ON Tiene FOR EACH ROW
     EXECUTE PROCEDURE fn_eliminar_de_deseados();
 
-/*
-
---Trigger de restricción de clientes
-
-CREATE OR REPLACE FUNCTION fn_restric_clientes() RETURNS TRIGGER AS $fn_restric_clientes$
-  DECLARE
-  --  no declaro nada porque no me hace falta...de hecho DECLARE podría haberlo omitido en éste caso
-  BEGIN
-  -- Insertar una fila en la tabla de auditoría con los valores de la tabla, operación, usuario y fecha actual
-    IF SESSION_USER =  (
-        SELECT 1
-        FROM Desea
-        WHERE Nombre_user = NEW.Nombre_user
-          AND Titulo_disco = NEW.Titulo_disco
-    ) THEN
-        -- Eliminar el disco de la lista de deseados
-        DELETE FROM Desea
-        WHERE Nombre_user = NEW.Nombre_user
-          AND Titulo_disco = NEW.Titulo_disco;
-    END IF;
-    RETURN NEW;
-  END;
-$fn_restric_clientes$ LANGUAGE plpgsql;
-
-*/
