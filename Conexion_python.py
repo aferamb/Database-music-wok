@@ -33,8 +33,7 @@ def ask_conn_parameters():
     user = input('Introduce el usuario: ')                                      # TODO
     password = input('Introduce la contraseña: ')                                                               # TODO
     database = 'intercambio_discos'                                             # TODO
-    return (host, port, user,
-             password, database)
+    return (host, port, user, password, database)
 
 def mostrar_menu():
     """
@@ -85,11 +84,11 @@ def main():
                         D.Titulo AS Titulo_Disco, 
                         E.Pais, 
                         E.Ano_edicion
-                   FROM Usuario U
-                   JOIN Tiene T ON U.Nombre_user = T.Nombre_user
-                   JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion
-                   JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion
-                   WHERE U.Nombre = 'Juan García Gómez' AND E.Formato = 'Vinyl' AND E.Ano_edicion > 0;'''
+                    FROM Usuario U
+                    JOIN Tiene T ON U.Nombre_user = T.Nombre_user
+                    JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion
+                    JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion
+                    WHERE U.Nombre = 'Juan García Gómez' AND E.Formato = 'Vinyl' AND E.Ano_edicion > 0;'''
         elif opcion == 3:
             query = '''WITH Duraciones AS (
                         SELECT  
