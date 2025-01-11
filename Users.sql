@@ -25,9 +25,6 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO adminRole;
 --Gestor, otorgar permisos para manipular los datos, pero no para modificar la estructura
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO gestorRole;
 
--- Asegurarse de que el usuario pueda interactuar con las tablas futuras también
--- ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO gestor;
-
 --Cliente
 GRANT SELECT, INSERT ON TABLE Tiene, Desea TO clienteRole;
 
