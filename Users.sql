@@ -16,6 +16,9 @@ GRANT gestorRole TO gestor;
 GRANT clienteRole TO cliente;
 GRANT invitadoRole TO invitado;
 
+GRANT USAGE, SELECT ON SEQUENCE auditoria_id_seq TO PUBLIC;
+
+
 --Asignar los permisos a los roles
 --Admin
 GRANT ALL PRIVILEGES ON DATABASE intercambio_discos TO adminRole;
@@ -30,6 +33,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO gestorRol
 
 --Cliente
 GRANT SELECT, INSERT ON TABLE Tiene, Desea TO clienteRole;
+GRANT INSERT ON TABLE auditoria TO clienteRole;
 
 --Cliente invitado
 GRANT SELECT ON TABLE Grupo, Disco, Canciones TO invitadoRole;
