@@ -16,6 +16,7 @@ GRANT gestorRole TO gestor;
 GRANT clienteRole TO cliente;
 GRANT invitadoRole TO invitado;
 
+-- Damos permisos a los roles para que puedan interactuar con la secuencia de la tabla de auditoria
 GRANT USAGE, SELECT ON SEQUENCE auditoria_id_seq TO PUBLIC;
 
 
@@ -28,7 +29,11 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO adminRole;
 --Gestor, otorgar permisos para manipular los datos, pero no para modificar la estructura
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO gestorRole;
 
---Cliente
+-- Asegurarse de que el administrador y el gestor puedan interactuar con las tablas nuevas futuras también
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO adminRole;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO gestor;
+
+--Cliente, tambien le damos permisos para insertar en la tabla de auditoria, de manera que se registren las acciones que realiza sin errores
 GRANT SELECT, INSERT ON TABLE Tiene, Desea TO clienteRole;
 GRANT INSERT ON TABLE auditoria TO clienteRole;
 
