@@ -31,7 +31,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO gestorRol
 
 -- Asegurarse de que el administrador y el gestor puedan interactuar con las tablas nuevas futuras también
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO adminRole;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO gestor;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO gestorRole;
 
 --Cliente, tambien le damos permisos para insertar en la tabla de auditoria, de manera que se registren las acciones que realiza sin errores
 GRANT SELECT, INSERT ON TABLE Tiene, Desea TO clienteRole;
