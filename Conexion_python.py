@@ -32,7 +32,7 @@ def ask_conn_parameters():
     port = ask_port('TCP port number: ')                                        # pide un puerto TCP
     user = input('Introduce el usuario: ')                                      
     password = input('Introduce la contraseña: ')                               # Change this line
-    database = 'prueba'                                             
+    database = 'intercambio_discos'                                             # Change this line
     return (host, port, user, password, database)
 
 def mostrar_menu():
@@ -72,29 +72,34 @@ def main():
 
         # Mostrar el menú para que el usuario elija una consulta
         mostrar_menu()
-        opcion = int(input("Elija una opción (1-12, 'a', 'b' o 'c'): "))    
+        opcion = input("Elija una opción (1-12, 'a', 'b' o 'c'): ")
+        if opcion not in ['a', 'b', 'c']:
+            opcion = int(opcion)
 
         cur     = conn.cursor()
         if opcion == 'a':
-            print("Introduce los datos del disco:")
-            titulo = input("Introduce el título del disco: ")
-            anio = int(input("Introduce el año de publicación: "))
-            url = input("Introduce la url de la portada: ")
-            grupo = input("Introduce el nombre del grupo: ")
-            query = f'''INSERT INTO Disco(Titulo,Ano_publicacion,Url_portada,Nombre_grupo) VALUES ('{titulo}', '{url}', {anio}, '{grupo}');'''
+            print("Introduce los datos del disco")
+            titulo = input("Introduce el título del disco: ").strip()
+            anio = int(input("Introduce el año de publicación: ").strip())
+            url = input("Introduce la url de la portada: ").strip()
+            grupo = input("Introduce el nombre del grupo: ").strip()
+            data = (titulo, anio, url, grupo)
+            query = f'''INSERT INTO Disco(Titulo,Ano_publicacion,Url_portada,Nombre_grupo) VALUES (%s, %s, %s, %s);'''
         elif opcion == 'b':
-            print("Introduce los datos de la canción:")
+            print("Introduce los datos de la canción")
             titulo_cancion = input("Título de la canción: ").strip()
             titulo_disco = input("Título del disco: ").strip()
             ano_publicacion = int(input("Año de publicación: ").strip())
             duracion_min = int(input("Duración (minutos): ").strip())
             duracion_seg = int(input("Duración (segundos): ").strip())
-            query = f'''INSERT INTO Canciones (Titulo_cancion, Titulo_disco, Ano_publicacion, Duracion) VALUES ('{titulo_cancion}', '{titulo_disco}', {ano_publicacion}, make_interval(mins => {duracion_min}, secs => {duracion_seg}));'''
+            data = (titulo_cancion, titulo_disco, ano_publicacion, duracion_min, duracion_seg)
+            query = f'''INSERT INTO Canciones (Titulo_cancion, Titulo_disco, Ano_publicacion, Duracion) VALUES (%s, %s, %s, make_interval(mins => %s, secs => %s));'''
         elif opcion == 'c':
-            print("Introduce los datos del grupo:")
-            grupo = input("Introduce el nombre del grupo: ")
-            url = input("Introduce la url deL grupo: ")
-            query = f'''INSERT INTO Grupo(Nombre,Url_grupo) VALUES ('{grupo}', '{url}');'''
+            print("Introduce los datos del grupo")
+            grupo = input("Introduce el nombre del grupo: ").strip()
+            url = input("Introduce la url deL grupo: ").strip()
+            data = (grupo, url)
+            query = f'''INSERT INTO Grupo(Nombre,Url_grupo) VALUES (%s, %s);'''
 
         elif opcion == 1:
             query = '''SELECT DISTINCT 
@@ -241,10 +246,16 @@ def main():
                     SELECT u.Nombre_user, te.total_ediciones
                     FROM usuario u JOIN total_ediciones te ON u.Nombre_user = te.Nombre_user
                     WHERE te.total_ediciones=(SELECT MAX(total_ediciones)
-                            FROM total_ediciones); '''                                                 # instacia un cursor
-        cur.execute(query)                                                      # ejecuta la consulta
-        for record in cur.fetchall():                                           # fetchall devuelve todas las filas de la consulta
-            print(record)                                                       # imprime las filas
+                            FROM total_ediciones); '''                                                
+    
+        if opcion not in ['a', 'b', 'c']:
+            cur.execute(query)                                                      # ejecuta la consulta
+            for record in cur.fetchall():                                           # fetchall devuelve todas las filas de la consulta
+                print(record)                                                       # imprime las filas
+        elif opcion in ['a', 'b', 'c']:
+            cur.execute(query, data)
+            conn.commit()
+            print("Consulta ejecutada correctamente.")
         cur.close                                                               # cierra el cursor
         conn.close                                                              # cierra la conexion
     except portException:
