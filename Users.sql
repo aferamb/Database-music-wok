@@ -34,8 +34,10 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO adminRole;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO gestorRole;
 
 --Cliente, tambien le damos permisos para insertar en la tabla de auditoria, de manera que se registren las acciones que realiza sin errores
+-- Además, le damos permisos para borra en la tabla Desea para que el trigger de disco funcione correctamente
 GRANT SELECT, INSERT ON TABLE Tiene, Desea TO clienteRole;
 GRANT INSERT ON TABLE auditoria TO clienteRole;
+GRANT DELETE ON TABLE Desea TO clienteRole;
 
 --Cliente invitado
 GRANT SELECT ON TABLE Grupo, Disco, Canciones TO invitadoRole;
