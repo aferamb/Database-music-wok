@@ -60,6 +60,8 @@ def mostrar_menu():
     print("11. Listar los grupos que tienen más de 5 ediciones de sus discos.")
     print("12. Lista el usuario que más discos,contando todas sus ediciones tiene en la base de datos.")
     print("")
+    print("0. Salir.")
+    print("")
 
 def main():
     """
@@ -71,204 +73,212 @@ def main():
         conn    = psycopg2.connect(connstring)                                  #
 
         # Mostrar el menú para que el usuario elija una consulta
-        mostrar_menu()
-        opcion = input("Elija una opción (1-12, 'a', 'b' o 'c'): ")
-        if opcion not in ['a', 'b', 'c']:
-            opcion = int(opcion)
+        while True:
+            mostrar_menu()
+            opcion = input("Elija una opción (0-12, 'a', 'b' o 'c'): ")
+            if opcion == '0':
+                break
+            if opcion not in ['a', 'b', 'c']:
+                opcion = int(opcion)
 
-        cur     = conn.cursor()
+            cur = conn.cursor()
 
-        if opcion == 'a':
-            print("Introduce los datos del disco")
-            titulo = input("Título del disco: ").strip()
-            anio = int(input("Año de publicación: ").strip())
-            url = input("Url de la portada: ").strip()
-            grupo = input("Nombre del grupo: ").strip()
-            data = (titulo, anio, url, grupo)
-            query = f'''INSERT INTO Disco(Titulo,Ano_publicacion,Url_portada,Nombre_grupo) VALUES (%s, %s, %s, %s);'''
+            if opcion == 'a':
+                print("Introduce los datos del disco")
+                titulo = input("Título del disco: ").strip()
+                anio = int(input("Año de publicación: ").strip())
+                url = input("Url de la portada: ").strip()
+                grupo = input("Nombre del grupo: ").strip()
+                data = (titulo, anio, url, grupo)
+                query = f'''INSERT INTO Disco(Titulo,Ano_publicacion,Url_portada,Nombre_grupo) VALUES (%s, %s, %s, %s);'''
 
-        elif opcion == 'b':
-            print("Introduce los datos de la canción")
-            titulo_cancion = input("Título de la canción: ").strip()
-            titulo_disco = input("Título del disco: ").strip()
-            ano_publicacion = int(input("Año de publicación: ").strip())
-            duracion_min = int(input("Duración (minutos): ").strip())
-            duracion_seg = int(input("Duración (segundos): ").strip())
-            data = (titulo_cancion, titulo_disco, ano_publicacion, duracion_min, duracion_seg)
-            query = f'''INSERT INTO Canciones (Titulo_cancion, Titulo_disco, Ano_publicacion, Duracion) VALUES (%s, %s, %s, make_interval(mins => %s, secs => %s));'''
+            elif opcion == 'b':
+                print("Introduce los datos de la canción")
+                titulo_cancion = input("Título de la canción: ").strip()
+                titulo_disco = input("Título del disco: ").strip()
+                ano_publicacion = int(input("Año de publicación: ").strip())
+                duracion_min = int(input("Duración (minutos): ").strip())
+                duracion_seg = int(input("Duración (segundos): ").strip())
+                data = (titulo_cancion, titulo_disco, ano_publicacion, duracion_min, duracion_seg)
+                query = f'''INSERT INTO Canciones (Titulo_cancion, Titulo_disco, Ano_publicacion, Duracion) VALUES (%s, %s, %s, make_interval(mins => %s, secs => %s));'''
 
-        elif opcion == 'c':
-            print("Introduce los datos del grupo")
-            grupo = input("Nombre del grupo: ").strip()
-            url = input("Url deL grupo: ").strip()
-            data = (grupo, url)
-            query = f'''INSERT INTO Grupo(Nombre,Url_grupo) VALUES (%s, %s);'''
+            elif opcion == 'c':
+                print("Introduce los datos del grupo")
+                grupo = input("Nombre del grupo: ").strip()
+                url = input("Url deL grupo: ").strip()
+                data = (grupo, url)
+                query = f'''INSERT INTO Grupo(Nombre,Url_grupo) VALUES (%s, %s);'''
 
-        elif opcion == 1:
-            query = '''SELECT DISTINCT 
-                    d.Titulo, 
-                    d.Ano_publicacion, 
-                    COUNT(c.Titulo_cancion) AS Num_canciones
-                FROM Disco d
-                JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
-                GROUP BY d.Titulo, d.Ano_publicacion
-                HAVING COUNT(c.Titulo_cancion) > 5 AND d.Ano_publicacion > 0
-                ORDER BY Num_canciones DESC;'''
+            elif opcion == 1:
+                query = '''SELECT DISTINCT 
+                        d.Titulo, 
+                        d.Ano_publicacion, 
+                        COUNT(c.Titulo_cancion) AS Num_canciones
+                    FROM Disco d
+                    JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
+                    GROUP BY d.Titulo, d.Ano_publicacion
+                    HAVING COUNT(c.Titulo_cancion) > 5 AND d.Ano_publicacion > 0
+                    ORDER BY Num_canciones DESC;'''
 
-        elif opcion == 2:
-            query = '''SELECT 
-                        E.Formato, 
-                        D.Titulo AS Titulo_Disco, 
-                        E.Pais, 
-                        E.Ano_edicion
-                    FROM Usuario U
-                    JOIN Tiene T ON U.Nombre_user = T.Nombre_user
-                    JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion
-                    JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion
-                    WHERE U.Nombre = 'Juan García Gómez' AND E.Formato = 'Vinyl' AND E.Ano_edicion > 0;'''
+            elif opcion == 2:
+                query = '''SELECT 
+                            E.Formato, 
+                            D.Titulo AS Titulo_Disco, 
+                            E.Pais, 
+                            E.Ano_edicion
+                        FROM Usuario U
+                        JOIN Tiene T ON U.Nombre_user = T.Nombre_user
+                        JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion
+                        JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion
+                        WHERE U.Nombre = 'Juan García Gómez' AND E.Formato = 'Vinyl' AND E.Ano_edicion > 0;'''
 
-        elif opcion == 3:
-            query = '''WITH Duraciones AS (
-                        SELECT  
+            elif opcion == 3:
+                query = '''WITH Duraciones AS (
+                            SELECT  
+                                d.Titulo, 
+                                d.Ano_publicacion, 
+                                SUM(c.Duracion) AS Duracion_total
+                            FROM Disco d
+                            JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
+                            WHERE d.Ano_publicacion > 0
+                            GROUP BY d.Titulo, d.Ano_publicacion
+                        )
+                        SELECT 
+                            Titulo, 
+                            Ano_publicacion, 
+                            Duracion_total
+                        FROM Duraciones
+                        WHERE Duracion_total = (
+                            SELECT MAX(Duracion_total)
+                            FROM Duraciones
+                        ) 
+                        ORDER BY Duracion_total DESC;'''
+
+            elif opcion == 4:
+                query = '''SELECT 
+                            D.Titulo_disco,
+                            G.Nombre_grupo
+                        FROM Desea D
+                        JOIN Disco G ON D.Titulo_disco = G.Titulo AND D.Ano_publicacion = G.Ano_publicacion
+                        JOIN Usuario U ON D.Nombre_user = U.Nombre_user 
+                        WHERE U.Nombre = 'Juan García Gómez'; '''
+
+            elif opcion == 5:
+                query = '''SELECT 
+                            d.Titulo, 
+                            d.Ano_publicacion, 
+                            d.Nombre_grupo,
+                            e.Formato, 
+                            e.Ano_edicion, 
+                            e.Pais
+                        FROM Ediciones e JOIN Disco d ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publicacion
+                        WHERE d.Ano_publicacion BETWEEN 1970 AND 1972 AND d.Ano_publicacion > 0 
+                        ORDER BY d.Ano_publicacion, d.Titulo;  '''
+
+            elif opcion == 6:
+                query = '''SELECT G.Nombre AS Nombre_Grupo
+                            FROM Grupo G 
+                            JOIN Disco D ON G.Nombre = D.Nombre_grupo
+                            JOIN Generos Ge ON D.Titulo = Ge.Titulo_disco AND D.Ano_publicacion = Ge.Ano_publicacion
+                            WHERE Ge.Genero = 'Electronic'; '''
+
+            elif opcion == 7:
+                query = '''SELECT 
                             d.Titulo, 
                             d.Ano_publicacion, 
                             SUM(c.Duracion) AS Duracion_total
-                        FROM Disco d
+                        FROM Disco d 
                         JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
-                        WHERE d.Ano_publicacion > 0
+                        WHERE d.Ano_publicacion < 2000 AND d.Ano_publicacion > 0
                         GROUP BY d.Titulo, d.Ano_publicacion
-                    )
-                    SELECT 
-                        Titulo, 
-                        Ano_publicacion, 
-                        Duracion_total
-                    FROM Duraciones
-                    WHERE Duracion_total = (
-                        SELECT MAX(Duracion_total)
-                        FROM Duraciones
-                    ) 
-                    ORDER BY Duracion_total DESC;'''
+                        ORDER BY d.Ano_publicacion, d.Titulo; '''
 
-        elif opcion == 4:
-            query = '''SELECT 
-                        D.Titulo_disco,
-                        G.Nombre_grupo
-                    FROM Desea D
-                    JOIN Disco G ON D.Titulo_disco = G.Titulo AND D.Ano_publicacion = G.Ano_publicacion
-                    JOIN Usuario U ON D.Nombre_user = U.Nombre_user 
-                    WHERE U.Nombre = 'Juan García Gómez'; '''
+            elif opcion == 8:
+                query = '''SELECT 
+                            D.Titulo, 
+                            D.Ano_publicacion
+                        FROM Usuario U 
+                        JOIN Tiene T ON U.Nombre_user = T.Nombre_user
+                        JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion
+                        JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion --se puede obviar
+                        WHERE U.Nombre = 'Juan García Gómez' AND D.Ano_publicacion > 0
+                        AND EXISTS (
+                            SELECT 
+                                Di.Titulo, 
+                                Di.Ano_publicacion 
+                            FROM Usuario U2
+                            JOIN Desea D2 ON U2.Nombre_user = D2.Nombre_user
+                            JOIN Disco Di ON D2.Titulo_disco = Di.Titulo AND D2.Ano_publicacion = Di.Ano_publicacion
+                            WHERE U2.Nombre = 'Lorena Sáez Pérez' 
+                        ); '''
 
-        elif opcion == 5:
-            query = '''SELECT 
-                        d.Titulo, 
-                        d.Ano_publicacion, 
-                        d.Nombre_grupo,
-                        e.Formato, 
-                        e.Ano_edicion, 
-                        e.Pais
-                    FROM Ediciones e JOIN Disco d ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publicacion
-                    WHERE d.Ano_publicacion BETWEEN 1970 AND 1972 AND d.Ano_publicacion > 0 
-                    ORDER BY d.Ano_publicacion, d.Titulo;  '''
+            elif opcion == 9:
+                query = '''SELECT
+                            u.Nombre, 
+                            t.Titulo_disco, 
+                            t.Ano_publicacion, 
+                            t.Formato, 
+                            t.Ano_edicion, 
+                            t.Pais, 
+                            t.Estado
+                        FROM Tiene t JOIN Usuario u ON t.Nombre_user = u.Nombre_user
+                        WHERE u.Nombre LIKE '%G_mez Garc_a%' AND Estado IN ('NM', 'M') AND t.Ano_publicacion > 0 AND t.Ano_edicion > 0; '''
 
-        elif opcion == 6:
-            query = '''SELECT G.Nombre AS Nombre_Grupo
-                        FROM Grupo G 
-                        JOIN Disco D ON G.Nombre = D.Nombre_grupo
-                        JOIN Generos Ge ON D.Titulo = Ge.Titulo_disco AND D.Ano_publicacion = Ge.Ano_publicacion
-                        WHERE Ge.Genero = 'Electronic'; '''
-
-        elif opcion == 7:
-            query = '''SELECT 
-                        d.Titulo, 
-                        d.Ano_publicacion, 
-                        SUM(c.Duracion) AS Duracion_total
-                    FROM Disco d 
-                    JOIN Canciones c ON d.Titulo = c.Titulo_disco AND d.Ano_publicacion = c.Ano_publicacion
-                    WHERE d.Ano_publicacion < 2000 AND d.Ano_publicacion > 0
-                    GROUP BY d.Titulo, d.Ano_publicacion
-                    ORDER BY d.Ano_publicacion, d.Titulo; '''
-
-        elif opcion == 8:
-            query = '''SELECT 
-                        D.Titulo, 
-                        D.Ano_publicacion
-                    FROM Usuario U 
-                    JOIN Tiene T ON U.Nombre_user = T.Nombre_user
-                    JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion
-                    JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion --se puede obviar
-                    WHERE U.Nombre = 'Juan García Gómez' AND D.Ano_publicacion > 0
-                    AND EXISTS (
+            elif opcion == 10:
+                query = '''WITH total_ediciones AS (
+                            SELECT t.Nombre_user, COUNT(*) AS total_ediciones
+                            FROM Tiene t
+                            GROUP BY t.Nombre_user
+                        )
                         SELECT 
-                            Di.Titulo, 
-                            Di.Ano_publicacion 
-                        FROM Usuario U2
-                        JOIN Desea D2 ON U2.Nombre_user = D2.Nombre_user
-                        JOIN Disco Di ON D2.Titulo_disco = Di.Titulo AND D2.Ano_publicacion = Di.Ano_publicacion
-                        WHERE U2.Nombre = 'Lorena Sáez Pérez' 
-                    ); '''
+                            u.Nombre_user, 
+                            te.total_ediciones, 
+                            MIN(T.Ano_publicacion) AS Ano_lanzamiento_mas_antiguo, 
+                            MAX(T.Ano_publicacion) AS Ano_lanzamiento_mas_reciente, 
+                            ROUND(AVG(T.Ano_publicacion), 0) AS Ano_medio
+                        FROM 
+                            usuario u 
+                            JOIN total_ediciones te ON u.Nombre_user = te.Nombre_user
+                            JOIN Tiene T ON u.Nombre_user = T.Nombre_user
+                        WHERE 
+                            T.Ano_publicacion > 0
+                        GROUP BY 
+                            u.Nombre_user, te.total_ediciones;   '''
 
-        elif opcion == 9:
-            query = '''SELECT
-                        u.Nombre, 
-                        t.Titulo_disco, 
-                        t.Ano_publicacion, 
-                        t.Formato, 
-                        t.Ano_edicion, 
-                        t.Pais, 
-                        t.Estado
-                    FROM Tiene t JOIN Usuario u ON t.Nombre_user = u.Nombre_user
-                    WHERE u.Nombre LIKE '%G_mez Garc_a%' AND Estado IN ('NM', 'M') AND t.Ano_publicacion > 0 AND t.Ano_edicion > 0; '''
+            elif opcion == 11:
+                query = '''SELECT 
+                            g.Nombre, 
+                            COUNT(e.Titulo_disco) AS Num_ediciones
+                        FROM Grupo g
+                        JOIN Disco d ON g.Nombre = d.Nombre_grupo
+                        JOIN Ediciones e ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publicacion
+                        GROUP BY g.Nombre
+                        HAVING COUNT(e.Titulo_disco) > 5; '''
 
-        elif opcion == 10:
-            query = '''WITH total_ediciones AS (
-                        SELECT t.Nombre_user, COUNT(*) AS total_ediciones
-                        FROM Tiene t
-                        GROUP BY t.Nombre_user
-                    )
-                    SELECT 
-                        u.Nombre_user, 
-                        te.total_ediciones, 
-                        MIN(T.Ano_publicacion) AS Ano_lanzamiento_mas_antiguo, 
-                        MAX(T.Ano_publicacion) AS Ano_lanzamiento_mas_reciente, 
-                        ROUND(AVG(T.Ano_publicacion), 0) AS Ano_medio
-                    FROM 
-                        usuario u 
-                        JOIN total_ediciones te ON u.Nombre_user = te.Nombre_user
-                        JOIN Tiene T ON u.Nombre_user = T.Nombre_user
-                    WHERE 
-                        T.Ano_publicacion > 0
-                    GROUP BY 
-                        u.Nombre_user, te.total_ediciones;   '''
+            elif opcion == 12:
+                query = '''WITH total_ediciones AS(
+                            SELECT t.Nombre_user, COUNT(*) AS total_ediciones
+                            FROM Tiene t
+                            GROUP BY t.Nombre_user
+                        )
+                        SELECT u.Nombre_user, te.total_ediciones
+                        FROM usuario u JOIN total_ediciones te ON u.Nombre_user = te.Nombre_user
+                        WHERE te.total_ediciones=(SELECT MAX(total_ediciones)
+                                FROM total_ediciones); '''                                                
 
-        elif opcion == 11:
-            query = '''SELECT 
-                        g.Nombre, 
-                        COUNT(e.Titulo_disco) AS Num_ediciones
-                    FROM Grupo g
-                    JOIN Disco d ON g.Nombre = d.Nombre_grupo
-                    JOIN Ediciones e ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publicacion
-                    GROUP BY g.Nombre
-                    HAVING COUNT(e.Titulo_disco) > 5; '''
+            if opcion in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
+                cur.execute(query)                                                      # ejecuta la consulta
+                for record in cur.fetchall():                                           # fetchall devuelve todas las filas de la consulta
+                    print(record)                                                       # imprime las filas
+            elif opcion in ['a', 'b', 'c']:
+                cur.execute(query, data)
+                conn.commit()
+                print("Insercion ejecutada correctamente.")
+            else:
+                print("Opción no válida.")
 
-        elif opcion == 12:
-            query = '''WITH total_ediciones AS(
-                        SELECT t.Nombre_user, COUNT(*) AS total_ediciones
-                        FROM Tiene t
-                        GROUP BY t.Nombre_user
-                    )
-                    SELECT u.Nombre_user, te.total_ediciones
-                    FROM usuario u JOIN total_ediciones te ON u.Nombre_user = te.Nombre_user
-                    WHERE te.total_ediciones=(SELECT MAX(total_ediciones)
-                            FROM total_ediciones); '''                                                
-    
-        if opcion not in ['a', 'b', 'c']:
-            cur.execute(query)                                                      # ejecuta la consulta
-            for record in cur.fetchall():                                           # fetchall devuelve todas las filas de la consulta
-                print(record)                                                       # imprime las filas
-        elif opcion in ['a', 'b', 'c']:
-            cur.execute(query, data)
-            conn.commit()
-            print("Insercion ejecutada correctamente.")
+            cur.close()                                                               # cierra el cursor
+        conn.close()                                                                  # cierra la conexion
         cur.close                                                               # cierra el cursor
         conn.close                                                              # cierra la conexion
     except portException:
