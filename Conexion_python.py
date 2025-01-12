@@ -28,17 +28,25 @@ def ask_conn_parameters():
         pide los parámetros de conexión
         TODO: cada estudiante debe introducir los valores para su base de datos
     """
-    host = 'localhost'                                                          # 
+    host = 'localhost'                                                          
     port = ask_port('TCP port number: ')                                        # pide un puerto TCP
-    user = input('Introduce el usuario: ')                                      # TODO
-    password = input('Introduce la contraseña: ')                                                               # TODO
-    database = 'intercambio_discos'                                             # TODO
+    user = input('Introduce el usuario: ')                                      
+    password = input('Introduce la contraseña: ')                               # Change this line
+    database = 'prueba'                                             
     return (host, port, user, password, database)
 
 def mostrar_menu():
     """
         Mostrar un menú de opciones para que el usuario elija una consulta.
     """
+    print("")
+    print("Bienvenido a la base de datos de música.")
+    print("")
+    print("Seleccione una operación a realizar:")
+    print("a. Insertar un nuevo disco.")
+    print("b. Insertar una nueva cancion en un disco.")
+    print("c. Insertar un nuevo grupo.")
+    print("")
     print("Seleccione una consulta para ejecutar:")
     print("1. Mostrar los discos que tengan más de 5 canciones.")
     print("2. Mostrar los vinilos que tiene el usuario Juan García Gómez.")
@@ -64,10 +72,31 @@ def main():
 
         # Mostrar el menú para que el usuario elija una consulta
         mostrar_menu()
-        opcion = int(input("Elija una opción (1-12): "))    
+        opcion = int(input("Elija una opción (1-12, 'a', 'b' o 'c'): "))    
 
         cur     = conn.cursor()
-        if opcion == 1:
+        if opcion == 'a':
+            print("Introduce los datos del disco:")
+            titulo = input("Introduce el título del disco: ")
+            anio = int(input("Introduce el año de publicación: "))
+            url = input("Introduce la url de la portada: ")
+            grupo = input("Introduce el nombre del grupo: ")
+            query = f'''INSERT INTO Disco(Titulo,Ano_publicacion,Url_portada,Nombre_grupo) VALUES ('{titulo}', '{url}', {anio}, '{grupo}');'''
+        elif opcion == 'b':
+            print("Introduce los datos de la canción:")
+            titulo_cancion = input("Título de la canción: ").strip()
+            titulo_disco = input("Título del disco: ").strip()
+            ano_publicacion = int(input("Año de publicación: ").strip())
+            duracion_min = int(input("Duración (minutos): ").strip())
+            duracion_seg = int(input("Duración (segundos): ").strip())
+            query = f'''INSERT INTO Canciones (Titulo_cancion, Titulo_disco, Ano_publicacion, Duracion) VALUES ('{titulo_cancion}', '{titulo_disco}', {ano_publicacion}, make_interval(mins => {duracion_min}, secs => {duracion_seg}));'''
+        elif opcion == 'c':
+            print("Introduce los datos del grupo:")
+            grupo = input("Introduce el nombre del grupo: ")
+            url = input("Introduce la url deL grupo: ")
+            query = f'''INSERT INTO Grupo(Nombre,Url_grupo) VALUES ('{grupo}', '{url}');'''
+
+        elif opcion == 1:
             query = '''SELECT DISTINCT 
                     d.Titulo, 
                     d.Ano_publicacion, 
