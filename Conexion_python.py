@@ -19,20 +19,19 @@ def ask_port(msg):
             return port
     except ValueError:     
         raise portException                                                     # raise portException
-    #finally:                                                                    # finally
-    #    return port                                                             # return port
+    #finally:                                                                   # finally
+    #    return port                                                            # return port
 
 def ask_conn_parameters():
     """
         ask_conn_parameters:: () -> IO String
-        pide los parámetros de conexión
-        TODO: cada estudiante debe introducir los valores para su base de datos
+        Pide los parámetros de conexión
     """
     host = 'localhost'                                                          
     port = ask_port('TCP port number: ')                                        # pide un puerto TCP
     user = input('Introduce el usuario: ')                                      
-    password = input('Introduce la contraseña: ')                               # Change this line
-    database = 'intercambio_discos'                                             # Change this line
+    password = input('Introduce la contraseña: ')                               
+    database = 'intercambio_discos'                                             
     return (host, port, user, password, database)
 
 def mostrar_menu():
@@ -60,6 +59,7 @@ def mostrar_menu():
     print("10. Listar todos los usuarios con el número de ediciones y años de sus discos.")
     print("11. Listar los grupos que tienen más de 5 ediciones de sus discos.")
     print("12. Lista el usuario que más discos,contando todas sus ediciones tiene en la base de datos.")
+    print("")
 
 def main():
     """
@@ -77,14 +77,16 @@ def main():
             opcion = int(opcion)
 
         cur     = conn.cursor()
+
         if opcion == 'a':
             print("Introduce los datos del disco")
-            titulo = input("Introduce el título del disco: ").strip()
-            anio = int(input("Introduce el año de publicación: ").strip())
-            url = input("Introduce la url de la portada: ").strip()
-            grupo = input("Introduce el nombre del grupo: ").strip()
+            titulo = input("Título del disco: ").strip()
+            anio = int(input("Año de publicación: ").strip())
+            url = input("Url de la portada: ").strip()
+            grupo = input("Nombre del grupo: ").strip()
             data = (titulo, anio, url, grupo)
             query = f'''INSERT INTO Disco(Titulo,Ano_publicacion,Url_portada,Nombre_grupo) VALUES (%s, %s, %s, %s);'''
+
         elif opcion == 'b':
             print("Introduce los datos de la canción")
             titulo_cancion = input("Título de la canción: ").strip()
@@ -94,10 +96,11 @@ def main():
             duracion_seg = int(input("Duración (segundos): ").strip())
             data = (titulo_cancion, titulo_disco, ano_publicacion, duracion_min, duracion_seg)
             query = f'''INSERT INTO Canciones (Titulo_cancion, Titulo_disco, Ano_publicacion, Duracion) VALUES (%s, %s, %s, make_interval(mins => %s, secs => %s));'''
+
         elif opcion == 'c':
             print("Introduce los datos del grupo")
-            grupo = input("Introduce el nombre del grupo: ").strip()
-            url = input("Introduce la url deL grupo: ").strip()
+            grupo = input("Nombre del grupo: ").strip()
+            url = input("Url deL grupo: ").strip()
             data = (grupo, url)
             query = f'''INSERT INTO Grupo(Nombre,Url_grupo) VALUES (%s, %s);'''
 
@@ -123,6 +126,7 @@ def main():
                     JOIN Ediciones E ON T.Titulo_disco = E.Titulo_disco AND T.Ano_publicacion = E.Ano_publicacion
                     JOIN Disco D ON E.Titulo_disco = D.Titulo AND E.Ano_publicacion = D.Ano_publicacion
                     WHERE U.Nombre = 'Juan García Gómez' AND E.Formato = 'Vinyl' AND E.Ano_edicion > 0;'''
+
         elif opcion == 3:
             query = '''WITH Duraciones AS (
                         SELECT  
@@ -144,6 +148,7 @@ def main():
                         FROM Duraciones
                     ) 
                     ORDER BY Duracion_total DESC;'''
+
         elif opcion == 4:
             query = '''SELECT 
                         D.Titulo_disco,
@@ -152,6 +157,7 @@ def main():
                     JOIN Disco G ON D.Titulo_disco = G.Titulo AND D.Ano_publicacion = G.Ano_publicacion
                     JOIN Usuario U ON D.Nombre_user = U.Nombre_user 
                     WHERE U.Nombre = 'Juan García Gómez'; '''
+
         elif opcion == 5:
             query = '''SELECT 
                         d.Titulo, 
@@ -163,12 +169,14 @@ def main():
                     FROM Ediciones e JOIN Disco d ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publicacion
                     WHERE d.Ano_publicacion BETWEEN 1970 AND 1972 AND d.Ano_publicacion > 0 
                     ORDER BY d.Ano_publicacion, d.Titulo;  '''
+
         elif opcion == 6:
             query = '''SELECT G.Nombre AS Nombre_Grupo
                         FROM Grupo G 
                         JOIN Disco D ON G.Nombre = D.Nombre_grupo
                         JOIN Generos Ge ON D.Titulo = Ge.Titulo_disco AND D.Ano_publicacion = Ge.Ano_publicacion
                         WHERE Ge.Genero = 'Electronic'; '''
+
         elif opcion == 7:
             query = '''SELECT 
                         d.Titulo, 
@@ -179,6 +187,7 @@ def main():
                     WHERE d.Ano_publicacion < 2000 AND d.Ano_publicacion > 0
                     GROUP BY d.Titulo, d.Ano_publicacion
                     ORDER BY d.Ano_publicacion, d.Titulo; '''
+
         elif opcion == 8:
             query = '''SELECT 
                         D.Titulo, 
@@ -197,6 +206,7 @@ def main():
                         JOIN Disco Di ON D2.Titulo_disco = Di.Titulo AND D2.Ano_publicacion = Di.Ano_publicacion
                         WHERE U2.Nombre = 'Lorena Sáez Pérez' 
                     ); '''
+
         elif opcion == 9:
             query = '''SELECT
                         u.Nombre, 
@@ -208,6 +218,7 @@ def main():
                         t.Estado
                     FROM Tiene t JOIN Usuario u ON t.Nombre_user = u.Nombre_user
                     WHERE u.Nombre LIKE '%G_mez Garc_a%' AND Estado IN ('NM', 'M') AND t.Ano_publicacion > 0 AND t.Ano_edicion > 0; '''
+
         elif opcion == 10:
             query = '''WITH total_ediciones AS (
                         SELECT t.Nombre_user, COUNT(*) AS total_ediciones
@@ -228,6 +239,7 @@ def main():
                         T.Ano_publicacion > 0
                     GROUP BY 
                         u.Nombre_user, te.total_ediciones;   '''
+
         elif opcion == 11:
             query = '''SELECT 
                         g.Nombre, 
@@ -237,6 +249,7 @@ def main():
                     JOIN Ediciones e ON d.Titulo = e.Titulo_disco AND d.Ano_publicacion = e.Ano_publicacion
                     GROUP BY g.Nombre
                     HAVING COUNT(e.Titulo_disco) > 5; '''
+
         elif opcion == 12:
             query = '''WITH total_ediciones AS(
                         SELECT t.Nombre_user, COUNT(*) AS total_ediciones
@@ -255,7 +268,7 @@ def main():
         elif opcion in ['a', 'b', 'c']:
             cur.execute(query, data)
             conn.commit()
-            print("Consulta ejecutada correctamente.")
+            print("Insercion ejecutada correctamente.")
         cur.close                                                               # cierra el cursor
         conn.close                                                              # cierra la conexion
     except portException:
@@ -266,7 +279,6 @@ def main():
         print("Program finished")
 
 #def prueba_conexion():
-
 
 if __name__ == "__main__":                                                      # Es el modula principal?
     if '--test' in sys.argv:                                                    # chequea el argumento cmdline buscando el modo test
